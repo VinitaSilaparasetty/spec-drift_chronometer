@@ -1,0 +1,43 @@
+# --- Spec-Drift Chronometer Core Exclusions ---
+
+# AWS CDK & Infrastructure
+cdk.out/
+.cdk.staging/
+*.db
+*.log
+
+# Environment & Security (CRITICAL)
+.env
+.env.*
+.aws/
+.credentials/
+*.pem
+*.key
+
+# Kiro Autonomous Agent
+# Note: We keep .kiro/steering/ but ignore local state
+.kiro/state/
+.kiro/logs/
+.kiro/temp/
+
+# Python (Data Science Stack)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+build/
+dist/
+
+# Node.js (UI/Lambda Stack)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+out/
+
+# Operating System
+.DS_Store
+Thumbs.db.vscode/

@@ -1,0 +1,36 @@
+# --- Aevoxis Solutions: Security Perimeter --- #
+
+# Sensitive Data & Secrets
+.env
+.env.*
+*.pem
+*.key
+credentials/
+secrets/
+.aws/
+mcp.json
+
+# Build Artifacts & Temporary Files
+cdk.out/
+.cdk.staging/
+dist/
+build/
+node_modules/
+__pycache__/
+*.log
+.DS_Store
+
+# Agent Local State
+.kiro/state/
+.kiro/logs/
+.kiro/temp/
+.kiro/subagents/
+
+# Dependencies & Large Files
+package-lock.json
+yarn.lock
+*.exe
+*.bin
+*.zip
+
+# --- END Perimeter ---
