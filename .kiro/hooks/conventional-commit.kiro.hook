@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Conventional Commit Assistant",
+  "description": "Generates professional commit messages based on staged git diffs following Conventional Commits standards.",
+  "version": "1.0.0",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "action": "askAgent",
+    "prompt": "Analyze the output of 'git diff --staged'. Propose a commit message following the Conventional Commits spec: <type>(<scope>): <subject>. Types: feat, fix, docs, style, refactor, test, chore. Use present tense. If multiple changes exist, provide a bulleted list in the body. Do not commit; just propose the text for my review."
+  }
+}
