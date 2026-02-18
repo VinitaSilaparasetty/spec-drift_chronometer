@@ -1,13 +1,13 @@
 {
-  "enabled": true,
   "name": "Conventional Commit Assistant",
   "description": "Generates professional commit messages based on staged diffs.",
-  "version": "1.0.0",
+  "version": "1",
+  "enabled": true,
   "when": {
     "type": "userTriggered"
   },
   "then": {
-    "action": "askAgent",
-    "prompt": "Analyze 'git diff --staged' and propose a Conventional Commit message."
+    "type": "askAgent",
+    "prompt": "Analyze the output of 'git diff --staged' and propose a Conventional Commit message following the spec: <type>(<scope>): <subject>."
   }
 }
