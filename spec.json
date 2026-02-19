@@ -1,0 +1,17 @@
+{
+  "project": "Spec-Drift Chronometer",
+  "version": "1.0.0",
+  "compliance_framework": "EU AI Act Article 14 / DiGA",
+  "oversight_mode": "Human-in-the-Loop (HITL)",
+  "drift_thresholds": {
+    "facial_geometry_variance": 0.05,
+    "classification_confidence_minimum": 0.85,
+    "latency_max_ms": 200
+  },
+  "immutable_logic": [
+    "EARS-Compliance",
+    "Structured-JSON-Logging",
+    "Asynchronous-Only-Core"
+  ],
+  "authorized_editor": "Sovereign Creator"
+}
