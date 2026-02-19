@@ -1,29 +1,12 @@
-
 {
-
-  "ProjectID": "SpecDrift_Chronometer_v1",
-
-  "IntentID": "2026-02-19T01:00:00Z#USER-TASK-042",
-
-  "RecordType": "DYNAMIC_INTENT",
-
-  "UseCase": "FREELANCE_MARKETPLACE_API", 
-
-  "Payload": {
-
-    "Dynamic_Attributes": {
-
-        "max_retry": 3,
-
-        "auth_method": "OIDC",
-
-        "custom_constraint": "Must pass German Privacy Law"
-
-    }
-
-  },
-
-  "Justification": "User requested dynamic scaling for a specific freelance platform project."
-
+  "TableName": "SpecDrift_Ledger",
+  "KeySchema": [
+    { "AttributeName": "IncidentID", "KeyType": "HASH" },
+    { "AttributeName": "Timestamp", "KeyType": "RANGE" }
+  ],
+  "AttributeDefinitions": [
+    { "AttributeName": "IncidentID", "AttributeType": "S" },
+    { "AttributeName": "Timestamp", "AttributeType": "S" }
+  ],
+  "BillingMode": "PAY_PER_REQUEST"
 }
-

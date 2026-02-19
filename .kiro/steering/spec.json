@@ -1,18 +1,9 @@
 {
-  "project": "Spec-Drift Chronometer",
+  "project_name": "Spec-Drift Chronometer",
   "version": "1.0.0",
-  "compliance_framework": "EU AI Act Article 14 / Intent Governance",
-  "oversight_mode": "Human-in-the-Loop (HITL)",
-  "drift_thresholds": {
-    "semantic_intent_deviation": 0.05,
-    "architectural_alignment_score_min": 0.90,
-    "latency_max_ms": 200,
-    "critical_drift_threshold": 0.25
-  },
-  "immutable_logic": [
-    "EARS-Compliance",
-    "Structured-JSON-Logging",
-    "Asynchronous-Only-Core"
-  ],
-  "authorized_editor": "Sovereign Creator"
+  "control_parameters": {
+    "semantic_drift_threshold": 0.15,
+    "max_latency_ms": 200,
+    "compliance_regime": "EU_AI_ACT_ART_12_14"
+  }
 }
