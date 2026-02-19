@@ -1,12 +1,13 @@
-# Product Overview: Spec-Drift Chronometer
-## Purpose
-A specialized AI governance tool designed for the 1000AIdeas competition. It focuses on early disease detection via facial structure analysis (DiGA path) and AI specification monitoring.
+# Product Strategy: Spec-Drift Chronometer
 
-## Key Features
-- **Spec-Drift Monitoring**: Tracking deviations between AI design and runtime behavior.
-- **Facial Structure Analysis**: High-precision image processing for medical markers.
-- **Compliance Engine**: Aligning AI outputs with German DiGA and EU AI Act regulations.
+## Vision
+The Spec-Drift Chronometer is an **Autonomous Intent Guardian** designed to solve the $2.4T AI-generated tech-debt crisis. It transforms the IDE from a simple code-generator into a governed, production-grade innovation engine.
 
-## Target Users
-- AI Compliance Officers in Germany.
-- Medical Researchers utilizing facial-based early detection systems.
+## Core Features
+- **Active Spec Memory**: A living Intent Ledger in DynamoDB that keeps architectural context active across all sessions.
+- **Semantic Drift Detection**: A background process that identifies intent deviations rather than just syntax changes.
+- **Justification Gate**: An Agent-to-Agent negotiation protocol (Warden vs. Coder) using the Strands SDK.
+- **Autonomous Spec Sync**: A pipeline that updates the 'Living Architecture' only after verified architectural justifications are logged.
+
+## Strategic Impact
+By enforcing architectural alignment at the moment of creation, the Chronometer ensures that AI velocity does not result in an unmaintainable "Ghost Codebase."

@@ -1,11 +1,11 @@
 {
   "project": "Spec-Drift Chronometer",
   "version": "1.0.0",
-  "compliance_framework": "EU AI Act Article 14 / DiGA",
+  "compliance_framework": "EU AI Act Article 14 / Intent Governance",
   "oversight_mode": "Human-in-the-Loop (HITL)",
   "drift_thresholds": {
-    "facial_geometry_variance": 0.05,
-    "classification_confidence_minimum": 0.85,
+    "semantic_intent_deviation": 0.05,
+    "architectural_alignment_score_min": 0.90,
     "latency_max_ms": 200
   },
   "immutable_logic": [
