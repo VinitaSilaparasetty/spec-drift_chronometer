@@ -1,14 +1,9 @@
 {
-    "ProjectID": {"S": "SpecDrift_Chronometer_v1"},
-    "IntentID": {"S": "2026-02-19T00:00:00Z#INIT-001"},
-    "RecordType": {"S": "ARCHITECTURAL_BASELINE"},
-    "UseCase": {"S": "GLOBAL_GOVERNANCE"},
-    "Payload": {"M": {
-        "spec_version": {"S": "1.0.0"},
-        "compliance": {"S": "EU_AI_Act_Art_14"},
-        "dynamic_mode": {"BOOL": true},
-        "supported_intents": {"L": [{"S": "SCHEMA"}, {"S": "SECURITY"}, {"S": "LOGIC"}]}
-    }},
-    "Sovereign_Approval": {"BOOL": true},
-    "Justification": "Initializing a dynamic, polymorphic Intent Ledger for multi-agent governance."
+  "IncidentID": {"S": "GENESIS-001"},
+  "Timestamp": {"S": "2026-02-22T10:00:00Z"},
+  "Type": {"S": "INITIALIZATION"},
+  "RequirementID": {"S": "REQ-TECH-001"},
+  "Description": {"S": "Establishment of the Sovereign Tech Baseline."},
+  "Justification": {"S": "Initializing a dynamic, polymorphic Intent Ledger for multi-agent governance."},
+  "Status": {"S": "APPROVED"}
 }
