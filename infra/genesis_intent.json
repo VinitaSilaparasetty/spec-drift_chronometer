@@ -1,9 +1,12 @@
 {
   "IncidentID": {"S": "GENESIS-001"},
-  "Timestamp": {"S": "2026-02-22T10:00:00Z"},
+  "Timestamp": {"S": "2026-02-22T11:45:00Z"},
   "Type": {"S": "INITIALIZATION"},
   "RequirementID": {"S": "REQ-TECH-001"},
   "Description": {"S": "Establishment of the Sovereign Tech Baseline."},
   "Justification": {"S": "Initializing a dynamic, polymorphic Intent Ledger for multi-agent governance."},
-  "Status": {"S": "APPROVED"}
+  "Status": {"S": "APPROVED"},
+  "ReasoningTrace": {"S": "System architecture validated against German regional constraints (eu-central-1). No drift detected at origin."},
+  "ModelFingerprint": {"S": "manual-init-v1.0"},
+  "HumanOverride": {"BOOL": true}
 }
