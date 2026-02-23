@@ -1,0 +1,4 @@
+{
+  "read_only_paths": [".kiro/steering/spec.json", ".kiro/steering/governance.md"],
+  "enforce_human_oversight": true
+}
