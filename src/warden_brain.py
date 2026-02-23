@@ -1,11 +1,17 @@
 import os
 import json
 import subprocess
+import boto3
 
-class WardenBrain:
+class WardenSwarm:
     def __init__(self):
+        # Retained from WardenBrain
         self.tech_laws_path = ".kiro/steering/tech.md"
         self.spec_path = ".kiro/steering/spec.json"
+        
+        # Added for Agentic Core (Sovereign Frankfurt Region)
+        self.bedrock = boto3.client("bedrock-runtime", region_name="eu-central-1")
+        self.model_id = "amazon.nova-pro-v1:0"
 
     def ingest_laws(self):
         """Reads the steering documents to establish Ground Truth."""
@@ -22,7 +28,6 @@ class WardenBrain:
     def capture_diff(self):
         """The 'Observer' logic: Captures uncommitted changes (the #Git Diff)."""
         try:
-            # Captures both staged and unstaged changes
             result = subprocess.run(
                 ["git", "diff", "HEAD"], 
                 capture_output=True, text=True
@@ -34,8 +39,29 @@ class WardenBrain:
         except Exception as e:
             return f"[ERROR] Could not capture Git Diff: {e}"
 
+    def perform_audit(self, laws, diff):
+        """The Nova Pro Reasoning Task: Drift vs. Hallucination."""
+        if not laws or not diff or "No changes detected" in diff:
+            return {"status": "SKIPPED", "reasoning": "No input for audit."}
+
+        prompt = f"AUDIT MISSION: Compare Diff against Tech Laws.\n\nLAWS:\n{laws}\n\nDIFF:\n{diff}\n\nOutput JSON with status, reasoning, and recommended_action."
+        
+        try:
+            response = self.bedrock.invoke_model(
+                modelId=self.model_id,
+                body=json.dumps({
+                    "inferenceConfig": {"max_new_tokens": 1000, "temperature": 0},
+                    "messages": [{"role": "user", "content": [{"text": prompt}]}]
+                })
+            )
+            # Nova response parsing
+            response_body = json.loads(response['body'].read())
+            return response_body['output']['message']['content'][0]['text']
+        except Exception as e:
+            return {"status": "ERROR", "reasoning": str(e)}
+
 if __name__ == "__main__":
-    warden = WardenBrain()
+    warden = WardenSwarm()
     laws, spec = warden.ingest_laws()
     current_diff = warden.capture_diff()
     
@@ -43,5 +69,7 @@ if __name__ == "__main__":
     if laws: print("[PASS] Laws Loaded.")
     if current_diff: 
         print(f"[INFO] Diff Captured ({len(current_diff)} characters).")
-        print("\n--- LIVE GIT DIFF SNIPPET ---")
-        print(current_diff[:200] + "...")
+        
+    print("\n--- INITIATING NOVA PRO AUDIT ---")
+    verdict = warden.perform_audit(laws, current_diff)
+    print(verdict)
