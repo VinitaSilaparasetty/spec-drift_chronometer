@@ -1,4 +1,13 @@
 {
-  "read_only_paths": [".kiro/steering/spec.json", ".kiro/steering/governance.md"],
-  "enforce_human_oversight": true
+  "read_only_paths": [
+    ".kiro/steering/spec.json", 
+    ".kiro/steering/governance.md", 
+    ".kiro/steering/tech.md"
+  ],
+  "hooks": {
+    "pre-commit": "uv run python3 src/swarm_registry.py",
+    "pre-edit": "if [ \"$FILE\" == \".kiro/steering/spec.json\" ]; then echo 'ACCESS DENIED: Human Oversight Required (Art. 14)'; exit 1; fi"
+  },
+  "enforce_human_oversight": true,
+  "agent_collaboration": "strands-sdk"
 }
