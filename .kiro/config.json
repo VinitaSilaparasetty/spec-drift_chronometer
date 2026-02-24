@@ -5,9 +5,9 @@
     ".kiro/steering/tech.md"
   ],
   "hooks": {
+    "on-save": "uv run python3 src/justification_gate.py",
     "pre-commit": "uv run python3 src/swarm_registry.py",
     "pre-edit": "if [ \"$FILE\" == \".kiro/steering/spec.json\" ]; then echo 'ACCESS DENIED: Human Oversight Required (Art. 14)'; exit 1; fi"
   },
-  "enforce_human_oversight": true,
-  "agent_collaboration": "strands-sdk"
+  "enforce_human_oversight": true
 }
