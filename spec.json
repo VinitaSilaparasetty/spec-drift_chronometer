@@ -1,0 +1,19 @@
+{
+  "project_name": "Spec-Drift Chronometer",
+  "version": "1.0.0",
+  "governance": {
+    "compliance_regime": "EU_AI_ACT_ART_12_14",
+    "sovereign_region": "eu-central-1",
+    "enforce_human_in_the_loop": true
+  },
+  "control_parameters": {
+    "semantic_drift_threshold": 0.15,
+    "max_latency_ms": 200,
+    "primary_reasoning_model": "amazon.nova-pro-v1:0",
+    "fallback_model": "amazon.nova-lite-v1:0"
+  },
+  "telemetry": {
+    "log_to_dynamodb": true,
+    "audit_trail_active": true
+  }
+}
