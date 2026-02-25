@@ -1,0 +1,16 @@
+{
+  "project_name": "Spec-Drift Chronometer",
+  "read_only_paths": [
+    ".kiro/steering/spec.json", 
+    ".kiro/steering/governance.md", 
+    ".kiro/steering/tech.md",
+    ".kiro/steering/boilerplate-standards.md"
+  ],
+  "hooks": {
+    "on-save": "uv run python3 src/core/justification_gate.py",
+    "pre-commit": "uv run python3 src/core/swarm_registry.py",
+    "pre-edit": "if [ \"$FILE\" == \".kiro/steering/spec.json\" ]; then echo '[ACCESS DENIED] Sovereign Human Oversight Required (Art. 14)'; exit 1; fi"
+  },
+  "enforce_human_oversight": true,
+  "sovereign_region": "eu-central-1"
+}
