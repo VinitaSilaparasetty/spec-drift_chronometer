@@ -3,10 +3,11 @@
   "Timestamp": {"S": "2026-02-22T11:45:00Z"},
   "Type": {"S": "INITIALIZATION"},
   "RequirementID": {"S": "REQ-TECH-001"},
+  "ComplianceStatus": {"S": "APPROVED"},
   "Description": {"S": "Establishment of the Sovereign Tech Baseline."},
   "Justification": {"S": "Initializing a dynamic, polymorphic Intent Ledger for multi-agent governance."},
-  "Status": {"S": "APPROVED"},
   "ReasoningTrace": {"S": "System architecture validated against German regional constraints (eu-central-1). No drift detected at origin."},
   "ModelFingerprint": {"S": "manual-init-v1.0"},
+  "VerificationHash": {"S": "sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069"},
   "HumanOverride": {"BOOL": true}
 }
