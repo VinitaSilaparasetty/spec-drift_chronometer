@@ -1,0 +1,14 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Aevoxis Sovereign Governance Engine"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "boto3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
