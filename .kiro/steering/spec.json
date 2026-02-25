@@ -1,9 +1,0 @@
-{
-  "project_name": "Spec-Drift Chronometer",
-  "version": "1.0.0",
-  "control_parameters": {
-    "semantic_drift_threshold": 0.15,
-    "max_latency_ms": 200,
-    "compliance_regime": "EU_AI_ACT_ART_12_14"
-  }
-}
