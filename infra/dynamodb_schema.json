@@ -1,12 +1,32 @@
 {
-  "TableName": "SpecDrift_Ledger",
+  "TableName": "SpecDrift_Sovereign_Ledger",
   "KeySchema": [
     { "AttributeName": "IncidentID", "KeyType": "HASH" },
     { "AttributeName": "Timestamp", "KeyType": "RANGE" }
   ],
   "AttributeDefinitions": [
     { "AttributeName": "IncidentID", "AttributeType": "S" },
-    { "AttributeName": "Timestamp", "AttributeType": "S" }
+    { "AttributeName": "Timestamp", "AttributeType": "S" },
+    { "AttributeName": "ComplianceStatus", "AttributeType": "S" }
   ],
-  "BillingMode": "PAY_PER_REQUEST"
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "StatusIndex",
+      "KeySchema": [
+        { "AttributeName": "ComplianceStatus", "KeyType": "HASH" },
+        { "AttributeName": "Timestamp", "KeyType": "RANGE" }
+      ],
+      "Projection": { "ProjectionType": "ALL" },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 0,
+        "WriteCapacityUnits": 0
+      }
+    }
+  ],
+  "BillingMode": "PAY_PER_REQUEST",
+  "Tags": [
+    { "Key": "Project", "Value": "Spec-Drift-Chronometer" },
+    { "Key": "Compliance", "Value": "EU-AI-ACT-ART-12" },
+    { "Key": "Region", "Value": "eu-central-1" }
+  ]
 }
