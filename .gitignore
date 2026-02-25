@@ -1,24 +1,25 @@
 # --- Spec-Drift Chronometer Core Exclusions ---
 
+# Sovereign Configuration (LOCAL ONLY)
+# We keep .kiro/steering/ but MUST ignore the local config
+.kiro/config.json
+.kiro/state/
+.kiro/logs/
+.kiro/temp/
+
 # AWS CDK & Infrastructure
 cdk.out/
 .cdk.staging/
 *.db
 *.log
 
-# Environment & Security (CRITICAL)
+# Environment & Security
 .env
 .env.*
 .aws/
 .credentials/
 *.pem
 *.key
-
-# Kiro Autonomous Agent
-# Note: We keep .kiro/steering/ but ignore local state
-.kiro/state/
-.kiro/logs/
-.kiro/temp/
 
 # Python (Data Science Stack)
 __pycache__/
@@ -40,5 +41,6 @@ out/
 
 # Operating System
 .DS_Store
-Thumbs.db.vscode/
+Thumbs.db
 .vscode/
+.idea/
