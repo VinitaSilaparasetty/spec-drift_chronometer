@@ -4,7 +4,7 @@ Swarm Registry: Manages the 'Builder' and 'Warden' A2A Negotiation Loop.
 """
 
 from strands import Swarm, Agent
-from src.core.warden_brain import WardenSwarm
+from backend.src.core.warden_brain import WardenSwarm
 import json
 import datetime
 

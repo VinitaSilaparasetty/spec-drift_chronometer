@@ -1,5 +1,5 @@
 import sys
-from src.core.warden_brain import WardenSwarm
+from backend.src.core.warden_brain import WardenSwarm
 
 def test_integration():
     print("�� [TEST] Initializing WardenSwarm Link Test...")

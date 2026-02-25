@@ -1,6 +1,6 @@
 import sys
 import json
-from src.core.warden_brain import WardenSwarm
+from backend.src.core.warden_brain import WardenSwarm
 
 def main():
     print("--- Spec-Drift Chronometer: Sovereign Initialization ---")
