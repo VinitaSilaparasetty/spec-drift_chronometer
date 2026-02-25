@@ -1,5 +1,13 @@
 # --- Aevoxis Solutions: Security Perimeter --- #
 
+# Sovereign Configuration (LOCAL ONLY)
+# Ignore the wiring, but monitor the laws
+.kiro/config.json
+.kiro/state/
+.kiro/logs/
+.kiro/temp/
+.kiro/subagents/
+
 # Sensitive Data & Secrets
 .env
 .env.*
@@ -19,12 +27,6 @@ node_modules/
 __pycache__/
 *.log
 .DS_Store
-
-# Agent Local State
-.kiro/state/
-.kiro/logs/
-.kiro/temp/
-.kiro/subagents/
 
 # Dependencies & Large Files
 package-lock.json
