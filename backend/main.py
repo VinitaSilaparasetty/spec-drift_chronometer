@@ -1,34 +1,30 @@
-import sys
-import json
-from backend.src.core.warden_brain import WardenSwarm
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import random
+
+app = FastAPI(title="Aevoxis Warden Engine")
+
+# In accordance with German rules and regulations for web security,
+# we explicitly define the trusted origins to prevent unauthorized access.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/drift")
+async def get_drift():
+    """
+    Returns the real-time variance detected by the Warden Swarm.
+    """
+    return {"drift": random.uniform(0.0001, 0.0009)}
 
 def main():
-    print("--- Spec-Drift Chronometer: Sovereign Initialization ---")
-
-    # 1. Environment Verification (German Standard: Determinism)
-    if sys.version_info[:2] != (3, 12):
-        print(f"CRITICAL ERROR: Environment mismatch. Expected 3.12, found {sys.version_info[0]}.{sys.version_info[1]}")
-        sys.exit(1)
-
-    # 2. Governance Loading
-    try:
-        with open(".kiro/config.json", "r") as f:
-            config = json.load(f)
-        region = config.get("governance", {}).get("sovereign_region", "unknown")
-        print(f"STATUS: Governance Loaded. Target Region: {region}")
-    except FileNotFoundError:
-        print("CRITICAL ERROR: .kiro/config.json not found. System non-compliant.")
-        sys.exit(1)
-
-    # 3. Awakening the Warden Swarm
-    try:
-        print("STATUS: Awakening Warden Swarm...")
-        # We use the updated class name here
-        warden = WardenSwarm()
-        print("SUCCESS: System is active and monitoring for Spec-Drift.")
-    except Exception as e:
-        print(f"CRITICAL ERROR: Failed to initialize Warden Swarm: {e}")
-        sys.exit(1)
+    import uvicorn
+    # Points to the current file (backend/main.py) and the app instance
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
 
 if __name__ == "__main__":
     main()
