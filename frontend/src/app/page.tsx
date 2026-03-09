@@ -10,7 +10,7 @@ export default function DriftDashboard() {
     const fetchDrift = async () => {
       try {
         // Points to your FastAPI 'backend.main:app'
-        const response = await fetch('https://5rroopabvb.execute-api.eu-central-1.amazonaws.com/default/drift');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/drift`);
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         
