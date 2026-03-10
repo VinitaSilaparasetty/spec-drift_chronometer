@@ -63,3 +63,4 @@ lambda_function.zip
 __pycache__/
 *.pyc
 .venv/
+.venv/
