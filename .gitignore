@@ -64,3 +64,13 @@ __pycache__/
 *.pyc
 .venv/
 .venv/
+
+# Final Backend Build Artifacts
+backend/bin/
+backend/lib/
+backend/include/
+backend/share/
+backend/*.whl
+backend/requirements_clean.txt
+backend/requirements_simple.txt
+lambda_function.zip

@@ -1,6 +1,7 @@
 starlette-0.52.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
 starlette-0.52.1.dist-info/METADATA,sha256=wN3Fg3zKlmoXD97vuSSg29CPHLHzENoQRqOfqu7QxTU,6318
 starlette-0.52.1.dist-info/RECORD,,
+starlette-0.52.1.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
 starlette-0.52.1.dist-info/WHEEL,sha256=WLgqFyCfm_KASv4WHyYy0P3pM_m7J5L9k2skdKLirC8,87
 starlette-0.52.1.dist-info/licenses/LICENSE.md,sha256=3LlWd6AiQCQxh-lk-UGEfRmxeCHPmeWvrmhPqzKMGb8,1518
 starlette/__init__.py,sha256=qGXLKRE1DujjCoGNaZ5WGUhaOMhlGVcsCjnPHgOXYGQ,23

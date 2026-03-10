@@ -287,12 +287,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "mangum" },
     { name = "uvicorn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "fastapi" },
+    { name = "mangum", specifier = ">=0.21.0" },
     { name = "uvicorn" },
 ]
 
