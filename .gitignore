@@ -53,3 +53,13 @@ backend/share/
 lambda_function.zip
 __pycache__/
 *.pyc
+
+# Python/AWS Cleanup
+backend/bin/
+backend/lib/
+backend/include/
+backend/share/
+lambda_function.zip
+__pycache__/
+*.pyc
+.venv/
