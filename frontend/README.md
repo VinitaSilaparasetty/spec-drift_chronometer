@@ -1,13 +1,23 @@
-# ⏱️ Spec-Drift Chronometer
+# Aevoxis Frontend Dashboard
 
-A high-precision temporal drift monitoring system built with **Next.js 16**, **FastAPI**, and **AWS Lambda**.
+## Setup & Installation
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## 🚀 Sovereign Features
-* **Real-time Heartbeat:** 3s interval data fetching.
-* **Serverless Backend:** Scalable Python FastAPI architecture.
-* **Cloud-Native:** Deployed via AWS API Gateway & Lambda.
+2. Configure Environment:
+   Ensure `.env.local` contains the correct AWS API URL:
+   ```text
+   NEXT_PUBLIC_API_URL=https://5rroopabvb.execute-api.eu-central-1.amazonaws.com/default
+   ```
 
-## 🛠️ Setup
-1. Clone the repo.
-2. Create a `.env.local` based on `.env.example`.
-3. Run `npm install && npm run dev`.
+3. Run Development Server:
+   ```bash
+   npm run dev
+   ```
+
+## Features
+* **Real-time Polling:** 3-second intervals for drift detection.
+* **Branded UI:** Sovereign-themed design language.
+* **Responsive Design:** Optimized for monitoring stations and mobile oversight.
