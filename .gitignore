@@ -44,3 +44,12 @@ out/
 Thumbs.db
 .vscode/
 .idea/
+
+# Python/AWS Cleanup
+backend/bin/
+backend/lib/
+backend/include/
+backend/share/
+lambda_function.zip
+__pycache__/
+*.pyc
