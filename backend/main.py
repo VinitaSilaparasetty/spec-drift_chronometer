@@ -5,31 +5,36 @@ import random
 
 app = FastAPI(title="Aevoxis Warden Engine")
 
-# In accordance with German rules and regulations for web security,
-# we explicitly define trusted origins while allowing flexibility for AWS deployment.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+@app.get("/")
+@app.get("/default")
+@app.get("/default/")
+def read_root():
+    return {
+        "status": "SOVEREIGN_ACTIVE",
+        "system": "Aevoxis Warden Engine",
+        "message": "Temporal monitoring systems online."
+    }
+
 @app.get("/drift")
-async def get_drift():
-    """
-    Returns the real-time variance detected by the Warden Swarm.
-    """
+@app.get("/default/drift")
+def get_drift():
     return {"drift": random.uniform(0.0001, 0.0009)}
 
-# The "Sovereign" Lambda Handler
-# This bridge allows AWS API Gateway to trigger our FastAPI logic.
+@app.api_route("/{path_name:path}", methods=["GET"])
+def catch_all(path_name: str):
+    return {
+        "status": "SOVEREIGN_REDIRECT",
+        "message": f"Path '{path_name}' not found.",
+        "active_endpoints": ["/", "/drift"]
+    }
+
+# This MUST be at the base level of the file
 handler = Mangum(app)
-
-def main():
-    import uvicorn
-    # Local development entry point
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
-
-if __name__ == "__main__":
-    main()
