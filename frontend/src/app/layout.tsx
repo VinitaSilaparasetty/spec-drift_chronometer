@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Spec-Drift Chronometer",
-  description: "High-precision temporal drift monitoring system",
+  manifest: "/manifest.json",
+  icons: { icon: "/icon.png", apple: "/icon.png" },  description: "High-precision temporal drift monitoring system",
 };
 
 export default function RootLayout({
