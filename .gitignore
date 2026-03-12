@@ -74,3 +74,5 @@ backend/*.whl
 backend/requirements_clean.txt
 backend/requirements_simple.txt
 lambda_function.zip
+node_modules/
+.kiro/audit/*
