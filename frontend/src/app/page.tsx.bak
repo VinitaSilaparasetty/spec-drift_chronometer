@@ -1,5 +1,4 @@
 'use client';
-import GovernanceActions from "@/components/GovernanceActions";
 
 import React, { useState, useEffect } from 'react';
 
@@ -43,7 +42,6 @@ export default function DriftDashboard() {
         <div>
           <h1 className="text-4xl font-light tracking-tighter uppercase italic">
             Spec-Drift <span className="font-bold not-italic">Chronometer</span>
-            <GovernanceActions />
           </h1>
           <p className="text-zinc-500 text-sm mt-2 font-mono uppercase tracking-widest">
             Aevoxis Governance Layer // 2026.02.25
