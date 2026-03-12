@@ -1,0 +1,25 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments and secrets
+.env
+.venv
+venv/
+ENV/
+
+# Deployment & Recovery artifacts
+lambda_package.zip
+dist/
+build/
+*.egg-info/
+
+# Testing noise
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS metadata
+.DS_Store
