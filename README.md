@@ -53,5 +53,6 @@ Run Audit: Click the "Run Audit" button on the dashboard. The Kiro Logic Engine 
 The Justification Gate: If drift is detected, the AWS Bedrock-powered Gate will trigger. You must provide a business justification, which is then evaluated against EU AI Act Article 14 guardrails.
 
 Download Trail: Click "Download Audit Trail" to export a deterministic record of the drift, the justification, and the governance decision for compliance reporting.
+
 ---
 *Developed for the 2026 Spec-Drift Competition.*
