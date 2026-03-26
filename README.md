@@ -55,4 +55,4 @@ The Justification Gate: If drift is detected, the AWS Bedrock-powered Gate will 
 Download Trail: Click "Download Audit Trail" to export a deterministic record of the drift, the justification, and the governance decision for compliance reporting.
 
 ---
-*Developed for the 2026 Spec-Drift Competition.*
+*Developed for the AWS 10,000 AIdeas competition 2025*
