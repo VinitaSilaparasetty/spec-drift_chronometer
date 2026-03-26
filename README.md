@@ -1,5 +1,7 @@
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
+*Note: This project is currently under active development.*
+
 ## Project Overview
 The **Aevoxis Warden Engine** is a sovereign monitoring system designed to detect and visualize temporal variance (Spec-Drift) in real-time. Built with a focus on security, transparency, and high-performance serverless architecture.
 
