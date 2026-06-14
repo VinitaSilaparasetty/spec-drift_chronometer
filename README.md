@@ -12,6 +12,12 @@ Aevoxis Solutions | aevoxis.de**
 
 ![Spec-Drift Chronometer Dashboard](screenshots/drif.webp)
 
+### Main Dashboard
+
+![Main Dashboard — Spec-Drift Chronometer](docs/screenshots/01-dashboard.png)
+
+> The complete system at a glance. The drift variance chart, sovereign spec vault, warden activity log, and governance action buttons are all visible on a single screen. A visitor understands immediately what the tool monitors and how it enforces human oversight.
+
 **Aevoxis Warden Engine** — an AI governance platform that detects semantic drift
 between human-authored architectural intent and AI-generated code in real time.
 Compliant with **EU AI Act Articles 12, 13, 14 & 50** (Transparency and Human Oversight).
