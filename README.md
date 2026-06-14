@@ -4,13 +4,12 @@ Top 300 Finalist from over 10,000 global submissions*
 **Built by Vinita Silaparasetty, AI Governance Engineer | 
 Aevoxis Solutions | aevoxis.de**
 
+[Read the official project submission on AWS Community Builder](https://builder.aws.com/content/3ArZsXU7l4aaXPzFdXH0DdlyaM4/aideas-spec-drift-chronometer)
 ---
 
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
-![Spec-Drift Chronometer Dashboard][image]
-
-[image]: https://prod-assets.cosmic.aws.dev/a/3Atu66MLg5ffqcH0pqe7a9qMe9E/drif.webp?imgSize=1000x586
+![Spec-Drift Chronometer Dashboard][https://prod-assets.cosmic.aws.dev/a/3Atu66MLg5ffqcH0pqe7a9qMe9E/drif.webp?imgSize=1000x586]
 
 ## EU AI Act Alignment
 
