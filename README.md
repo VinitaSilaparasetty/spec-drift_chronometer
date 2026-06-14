@@ -11,11 +11,17 @@ Aevoxis Solutions | aevoxis.de**
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
 
-### Main Dashboard
+### Sovereign Dashboard
 
-![Main Dashboard — Spec-Drift Chronometer](screenshots/01-dashboard.png)
+![Sovereign Dashboard — Spec-Drift Chronometer](screenshots/01-dashboard.png)
 
-> The complete system at a glance. The drift variance chart, sovereign spec vault, warden activity log, and governance action buttons are all visible on a single screen. A visitor understands immediately what the tool monitors and how it enforces human oversight.
+> Normal operating state. Drift is within threshold, system status reads SOVEREIGN, and all governance indicators are green. The complete system at a glance: drift variance chart, sovereign spec vault, warden activity log, and governance action buttons on a single screen.
+
+### Justification Gate Approved
+
+![Justification Gate Approved — Spec-Drift Chronometer](screenshots/02-justification-gate-approved.png)
+
+> The complete governance cycle in one frame. Drift has crossed the sovereign threshold, a human submitted a substantive justification, and the Warden Agent returned an APPROVED decision with Intent Alignment Score 91/100 and a full reasoning trace cross-referenced against `.kiro/steering/`. This is Article 14 Human-in-the-Loop enforcement working end-to-end.
 
 **Aevoxis Warden Engine** — an AI governance platform that detects semantic drift
 between human-authored architectural intent and AI-generated code in real time.
@@ -220,9 +226,50 @@ See `.env.example` for the full list with descriptions. Key variables:
 
 ## Screenshots
 
-See [`docs/screenshots/README.md`](docs/screenshots/README.md) for detailed
+See [`screenshots/README.md`](screenshots/README.md) for detailed
 descriptions of every screen including the dashboard, Justification Gate, and
 audit trail output.
+
+---
+
+## Sample Audit Trail Output
+
+Every governance decision generates a structured audit file at `.kiro/audit/last_sync.audit`, downloadable directly from the dashboard. This is the Article 12 record-keeping artifact — a tamper-evident, SHA-256-verified log of every human oversight event.
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║      SPEC-DRIFT CHRONOMETER — SOVEREIGN AUDIT TRAIL         ║
+╚══════════════════════════════════════════════════════════════╝
+
+Timestamp:          2026-06-14 15:24:15 UTC
+Mode:               DEMO_MODE (simulated)
+Drift Index:        0.0082
+Threshold:          0.0075
+Gate Status:        RESOLVED
+Spec Hash:          bf40efdc39297d64
+Run Hash:           cdfa7ff9a941820f
+
+── GOVERNANCE COMPLIANCE ──────────────────────────────────────
+EU AI Act Article 14 (Human Oversight):   VERIFIED
+EU AI Act Article 12 (Transparency):      VERIFIED
+Sovereign Region:                          eu-central-1 (Frankfurt)
+System Integrity:                          100%
+
+── ACTIVE SPECIFICATIONS (.kiro/steering/spec.json) ───────────
+Semantic Drift Threshold:  0.15
+Max Latency (ms):          200
+Primary Model:             amazon.nova-pro-v1:0
+Audit Trail Active:        true
+
+── JUSTIFICATION GATE RECORD ──────────────────────────────────
+Decision:         APPROVED
+Justification:    Migrating auth layer to OAuth2 to satisfy GDPR Article 7
+                  compliance requirements signed off by legal team on 2026-06-10.
+
+══════════════════════════════════════════════════════════════
+```
+
+The Warden also enforces quality: a weak justification (`"okay"`) scores 29/100 and is **REJECTED** with a full reasoning trace — proving the gate is not a rubber stamp.
 
 ---
 
