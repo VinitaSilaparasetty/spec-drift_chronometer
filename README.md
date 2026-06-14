@@ -10,11 +10,10 @@ Aevoxis Solutions | aevoxis.de**
 
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
-![Spec-Drift Chronometer Dashboard](screenshots/drif.webp)
 
 ### Main Dashboard
 
-![Main Dashboard — Spec-Drift Chronometer](docs/screenshots/01-dashboard.png)
+![Main Dashboard — Spec-Drift Chronometer](screenshots/01-dashboard.png)
 
 > The complete system at a glance. The drift variance chart, sovereign spec vault, warden activity log, and governance action buttons are all visible on a single screen. A visitor understands immediately what the tool monitors and how it enforces human oversight.
 
