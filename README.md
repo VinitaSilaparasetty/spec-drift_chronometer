@@ -9,7 +9,7 @@ Aevoxis Solutions | aevoxis.de**
 
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
-![Spec-Drift Chronometer Dashboard][https://prod-assets.cosmic.aws.dev/a/3Atu66MLg5ffqcH0pqe7a9qMe9E/drif.webp?imgSize=1000x586]
+![Spec-Drift Chronometer Dashboard](https://prod-assets.cosmic.aws.dev/a/3Atu66MLg5ffqcH0pqe7a9qMe9E/drif.webp?imgSize=1000x586)
 
 ## EU AI Act Alignment
 
