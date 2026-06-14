@@ -153,8 +153,8 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
 
             <div className="h-52 flex items-end gap-1 border-b border-zinc-800 pb-1">
               {driftData.length === 0
-                ? Array.from({ length: 20 }).map((_, i) => (
-                    <div key={i} className="flex-1 bg-zinc-800/40 rounded-t-sm" style={{ height: `${Math.random() * 15 + 5}%` }} />
+                ? [8,12,7,10,14,9,11,6,13,8,10,15,7,12,9,11,8,13,6,10].map((h, i) => (
+                    <div key={i} className="flex-1 bg-zinc-800/40 rounded-t-sm" style={{ height: `${h}%` }} />
                   ))
                 : driftData.map((pt, i) => (
                     <div
