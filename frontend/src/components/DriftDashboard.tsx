@@ -68,7 +68,7 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
   const [showGate, setShowGate] = useState(false);
 
   const isLive = currentStatus !== "CONNECTING" && currentStatus !== "OFFLINE";
-  const specCompliance = currentStatus === "SOVEREIGN" || currentStatus === "RESOLVING" ? "100%" : currentStatus === "MONITORING" ? "94%" : "BREACH";
+  const specCompliance = currentStatus === "CONNECTING" || currentStatus === "OFFLINE" ? "—" : currentStatus === "SOVEREIGN" || currentStatus === "RESOLVING" ? "100%" : currentStatus === "MONITORING" ? "94%" : "BREACH";
   const logs = generateLogs(driftData, gateStatus, gateDecision);
 
   // Show gate automatically when triggered
