@@ -8,6 +8,20 @@ Aevoxis Solutions | aevoxis.de**
 
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
+![Spec-Drift Chronometer Dashboard][image]
+
+[image]: https://prod-assets.cosmic.aws.dev/a/3Atu66MLg5ffqcH0pqe7a9qMe9E/drif.webp?imgSize=1000x586
+
+## EU AI Act Alignment
+
+| Requirement | Implementation |
+|---|---|
+| Article 14: Human Oversight | Justification Gate blocks execution until human approval |
+| Article 12: Record Keeping | Deterministic audit trail exported on every governance decision |
+| Article 13: Transparency | Real-time drift coefficient visible to all stakeholders |
+| Article 50: Disclosure | System identifies itself as AI-governed at every interaction point |
+
+
 ## What This Solves
 
 Enterprises deploying autonomous AI systems face a critical 
@@ -85,17 +99,6 @@ Sandbox (for example, changing an S3 bucket policy). Click
 Run Audit on the dashboard. If drift is detected, the 
 Justification Gate will activate. Download the Audit Trail 
 for compliance reporting.
-
----
-
-## EU AI Act Alignment
-
-| Requirement | Implementation |
-|---|---|
-| Article 14: Human Oversight | Justification Gate blocks execution until human approval |
-| Article 12: Record Keeping | Deterministic audit trail exported on every governance decision |
-| Article 13: Transparency | Real-time drift coefficient visible to all stakeholders |
-| Article 50: Disclosure | System identifies itself as AI-governed at every interaction point |
 
 ---
 
