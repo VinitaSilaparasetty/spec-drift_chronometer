@@ -14,8 +14,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Spec-Drift Chronometer",
-  themeColor: "#000000",  manifest: "/manifest.json",
-  icons: { icon: "/icon.png", apple: "/icon.png" },  description: "High-precision temporal drift monitoring system",
+  manifest: "/manifest.json",
+  icons: { icon: "/icon.png", apple: "/icon.png" },
+  description: "High-precision temporal drift monitoring system",
+};
+
+export const viewport = {
+  themeColor: "#000000",
 };
 
 export default function RootLayout({

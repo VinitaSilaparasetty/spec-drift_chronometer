@@ -1,15 +1,22 @@
-*Developed for the AWS 10,000 AIdeas Competition 2025 | 
+*Developed for the AWS 10,000 AIdeas Competition 2025 |
 Top 300 Finalist from over 10,000 global submissions*
 
-**Built by Vinita Silaparasetty, AI Governance Engineer | 
+**Built by Vinita Silaparasetty, AI Governance Engineer |
 Aevoxis Solutions | aevoxis.de**
 
 [Read the official project submission on AWS Community Builder](https://builder.aws.com/content/3ArZsXU7l4aaXPzFdXH0DdlyaM4/aideas-spec-drift-chronometer)
+
 ---
 
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
 ![Spec-Drift Chronometer Dashboard](screenshots/drif.webp)
+
+**Aevoxis Warden Engine** — an AI governance platform that detects semantic drift
+between human-authored architectural intent and AI-generated code in real time.
+Compliant with **EU AI Act Articles 12, 13, 14 & 50** (Transparency and Human Oversight).
+
+---
 
 ## EU AI Act Alignment
 
@@ -20,41 +27,179 @@ Aevoxis Solutions | aevoxis.de**
 | Article 13: Transparency | Real-time drift coefficient visible to all stakeholders |
 | Article 50: Disclosure | System identifies itself as AI-governed at every interaction point |
 
+---
 
 ## What This Solves
 
-Enterprises deploying autonomous AI systems face a critical 
-governance problem: how do you detect when an AI system has 
-drifted from its original human-approved specification, and 
+Enterprises deploying autonomous AI systems face a critical
+governance problem: how do you detect when an AI system has
+drifted from its original human-approved specification, and
 how do you enforce accountability when it does?
 
-The Spec-Drift Chronometer monitors autonomous AI outputs in 
-real time, detects misalignment between human intent and system 
-behaviour, and triggers a Human-in-the-Loop Justification Gate 
+The Spec-Drift Chronometer monitors autonomous AI outputs in
+real time, detects misalignment between human intent and system
+behaviour, and triggers a Human-in-the-Loop Justification Gate
 before any non-compliant action is executed.
 
-EU AI Act Article 14 human oversight requirements are engineered 
-directly into the architecture, not added as an afterthought. 
-Deployed on AWS Lambda, Frankfurt region (eu-central-1) for 
+EU AI Act Article 14 human oversight requirements are engineered
+directly into the architecture, not added as an afterthought.
+Deployed on AWS Lambda, Frankfurt region (eu-central-1) for
 EU data residency compliance.
 
 ---
 
-## How It Works
+## What It Does
 
-**Drift Detection:** The system continuously monitors autonomous 
-AI outputs against the original human-approved specification 
-stored in the governance ledger. Any deviation triggers an alert.
+| Feature | Description |
+|---------|-------------|
+| **Drift Detection** | Polls a live drift index every 3 seconds. Visualises it as a real-time bar chart coloured by severity. |
+| **Justification Gate** | When drift crosses the sovereign threshold, an Article 14-compliant Human-in-the-Loop gate appears. No automated merge proceeds without human sign-off. |
+| **Warden Agent** | Submits the human justification to Amazon Nova Pro (or a realistic mock in DEMO_MODE) and returns a structured reasoning trace. |
+| **Audit Trail** | Every governance event is logged to `.kiro/audit/last_sync.audit` with a SHA-256 verification hash — downloadable from the dashboard. |
+| **Spec Vault** | Human intent specs live in `.kiro/steering/`. The Warden cross-references every decision against these files. |
 
-**Human-in-the-Loop Justification Gate:** When drift is detected, 
-the system halts execution and requires a human to provide a 
-documented business justification before proceeding. This 
-justification is evaluated against EU AI Act Article 14 guardrails 
-in real time.
+---
 
-**Audit Trail:** Every drift event, justification, and governance 
-decision is logged as a downloadable, deterministic record suitable 
-for regulatory reporting.
+## Prerequisites
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Python | ≥ 3.12 | `python3 --version` |
+| Node.js | ≥ 18 | `node --version` |
+| npm | ≥ 9 | bundled with Node.js |
+| curl | any | used by `dev.sh` health-check |
+
+No AWS account needed for DEMO_MODE.
+
+---
+
+## Quickstart — DEMO_MODE (under 5 minutes)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/VinitaSilaparasetty/spec-drift_chronometer.git
+cd spec-drift_chronometer
+
+# 2. Make the launcher executable (first time only)
+chmod +x dev.sh
+
+# 3. Launch everything with a single command
+DEMO_MODE=true ./dev.sh
+```
+
+The script will:
+1. Create a Python venv and install backend dependencies
+2. Start the FastAPI Warden Engine on **port 8000**
+3. Write `frontend/.env.local` pointing at localhost
+4. Start the Next.js dashboard on **port 3000**
+
+Open **http://localhost:3000** in your browser.
+
+**Demo flow (automatic, ~90 seconds):**
+1. Dashboard loads — drift is low, system status is SOVEREIGN
+2. Drift rises through MONITORING into CRITICAL_DRIFT
+3. The **Justification Gate** modal appears automatically
+4. Type any meaningful justification and click **Submit to Warden Agent**
+5. The Warden (mocked Nova Pro) returns APPROVED or REJECTED with a reasoning trace
+6. Click **Run Audit** then **Download Audit** to see the full audit trail
+
+---
+
+## Production Setup — Live AWS Bedrock
+
+### 1. Configure AWS credentials
+
+```bash
+cp .env.example .env
+# Edit .env and set:
+#   AWS_ACCESS_KEY_ID=...
+#   AWS_SECRET_ACCESS_KEY=...
+#   AWS_REGION=eu-central-1
+#   DEMO_MODE=false
+```
+
+### 2. IAM permissions required
+
+```
+bedrock:InvokeModel         (on amazon.nova-pro-v1:0 and amazon.nova-lite-v1:0)
+dynamodb:PutItem            (optional — for persisting the Intent Ledger)
+dynamodb:GetItem
+```
+
+### 3. Start with real credentials
+
+```bash
+DEMO_MODE=false ./dev.sh
+```
+
+### 4. Deploy to AWS Lambda
+
+```bash
+cd backend
+pip install -r requirements.txt -t package/
+zip -r ../deployment_package.zip main.py package/
+
+aws lambda update-function-code \
+  --function-name spec-drift-chronometer \
+  --zip-file fileb://../deployment_package.zip \
+  --region eu-central-1
+```
+
+Set the Lambda handler to `main.handler` and configure the API Gateway URL
+as `NEXT_PUBLIC_API_URL` in your frontend build.
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│                     Browser                          │
+│   Next.js Dashboard (port 3000)                      │
+│   ├── DriftDashboard  — real-time chart + logs       │
+│   ├── JustificationGate — Article 14 modal           │
+│   └── GovernanceActions — audit buttons              │
+└────────────────────┬─────────────────────────────────┘
+                     │ HTTP (NEXT_PUBLIC_API_URL)
+┌────────────────────▼─────────────────────────────────┐
+│   FastAPI Warden Engine (port 8000)                  │
+│   ├── GET  /drift          — live drift index        │
+│   ├── GET  /gate/status    — gate state              │
+│   ├── POST /gate/submit    — invoke Warden Agent     │
+│   ├── POST /audit          — generate audit file     │
+│   └── GET  /download-audit — serve audit file        │
+└────────────────────┬─────────────────────────────────┘
+                     │ boto3 (PRODUCTION only)
+┌────────────────────▼─────────────────────────────────┐
+│   AWS eu-central-1                                   │
+│   ├── Amazon Bedrock  — nova-pro-v1:0 reasoning      │
+│   └── DynamoDB        — Intent Ledger (optional)     │
+└──────────────────────────────────────────────────────┘
+```
+
+**Spec Vault (`.kiro/steering/`)** — human-authored intent files the Warden
+cross-references for every governance decision:
+
+| File | Purpose |
+|------|---------|
+| `governance.md` | Warden persona and negotiation protocol |
+| `tech.md` | Technology constraints (region, models, runtimes) |
+| `product.md` | Vision and strategic pillars |
+| `human-intent-specs.md` | Explicit architect declarations (INTENT-001 … INTENT-006) |
+| `spec.json` | Machine-readable thresholds and model config |
+
+---
+
+## Environment Variables
+
+See `.env.example` for the full list with descriptions. Key variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEMO_MODE` | `true` | `true` = no AWS needed; `false` = live Bedrock |
+| `DRIFT_THRESHOLD` | `0.0075` | Drift value that triggers the Justification Gate |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL for the frontend |
+| `AWS_REGION` | `eu-central-1` | Must be Frankfurt for data sovereignty |
 
 ---
 
@@ -68,42 +213,23 @@ for regulatory reporting.
 
 ---
 
-## Quick Start
+## Screenshots
 
-**1. Backend**
+See [`docs/screenshots/README.md`](docs/screenshots/README.md) for detailed
+descriptions of every screen including the dashboard, Justification Gate, and
+audit trail output.
 
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
+---
 
-Ensure your .kiro/steering vault is populated with your 
-human-intent specifications before starting.
+## License
 
-**2. Frontend**
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:3000 to access the dashboard.
-
-**3. Run a Drift Audit**
-
-Trigger a drift event by modifying a resource in your AWS 
-Sandbox (for example, changing an S3 bucket policy). Click 
-Run Audit on the dashboard. If drift is detected, the 
-Justification Gate will activate. Download the Audit Trail 
-for compliance reporting.
+MIT — see `LICENSE`.
 
 ---
 
 ## About
 
-Built by Vinita Silaparasetty, AI Governance Engineer and 
+Built by Vinita Silaparasetty, AI Governance Engineer and
 founder of Aevoxis Solutions, operating under SMartDe eG, Germany.
 
 Website: https://aevoxis.de

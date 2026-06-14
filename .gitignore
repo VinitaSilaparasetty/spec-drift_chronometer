@@ -16,6 +16,7 @@ cdk.out/
 # Environment & Security
 .env
 .env.*
+!.env.example
 .aws/
 .credentials/
 *.pem
