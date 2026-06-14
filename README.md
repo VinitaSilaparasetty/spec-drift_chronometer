@@ -1,58 +1,109 @@
-# Aevoxis Warden Engine: Spec-Drift Chronometer
+*Developed for the AWS 10,000 AIdeas Competition 2025 | 
+Top 300 Finalist from over 10,000 global submissions*
 
-*Note: This project is currently under active development.*
-
-## Project Overview
-The **Aevoxis Warden Engine** is a sovereign monitoring system designed to detect and visualize temporal variance (Spec-Drift) in real-time. Built with a focus on security, transparency, and high-performance serverless architecture.
-
-### Tech Stack
-* **Frontend:** Next.js (React) with Tailwind CSS
-* **Backend:** FastAPI (Python) with Mangum
-* **Infrastructure:** AWS Lambda (Frankfurt - eu-central-1)
-* **Governance:** Kiro-compliant steering and policy ledger
-
-### Architecture
-The system utilizes a "Heartbeat" mechanism where the frontend polls a sovereign AWS Lambda endpoint every 3 seconds to retrieve live drift variance.
-
-Quick Start: Running the Demo
-To experience the Spec-Drift Chronometer in action, follow these steps to initialize the governance layer and visualize architectural integrity.
-
-1. Backend Initialization (The Warden Engine)
-The backend is built with FastAPI and hosted on AWS Lambda via Mangum.
-
-Navigate to the backend directory: cd backend
-
-Install dependencies: pip install -r requirements.txt
-
-Local Emulation: Use the SAM CLI or run the FastAPI server directly for testing:
-
-Bash
-uvicorn main:app --reload
-Kiro Steering: Ensure your .kiro/steering vault is populated with your human-intent specifications. The engine will automatically bind these to the execution context.
-
-2. Frontend Visualization (The Chronometer Dashboard)
-The dashboard provides the real-time Drift Coefficient and the Justification Gate interface.
-
-Navigate to the frontend directory: cd frontend
-
-Install dependencies: npm install
-
-Launch the Dashboard:
-
-Bash
-npm run dev
-Access the UI: Open http://localhost:3000 in your browser.
-
-3. Executing a Drift Audit
-Once both layers are running:
-
-Trigger a "Console Creep" event: Manually alter a resource in your AWS Sandbox (e.g., change an S3 bucket policy or an EC2 security group).
-
-Run Audit: Click the "Run Audit" button on the dashboard. The Kiro Logic Engine will perform millisecond-latency reconciliation against the .kiro/steering vault.
-
-The Justification Gate: If drift is detected, the AWS Bedrock-powered Gate will trigger. You must provide a business justification, which is then evaluated against EU AI Act Article 14 guardrails.
-
-Download Trail: Click "Download Audit Trail" to export a deterministic record of the drift, the justification, and the governance decision for compliance reporting.
+**Built by Vinita Silaparasetty, AI Governance Engineer | 
+Aevoxis Solutions | aevoxis.de**
 
 ---
-*Developed for the AWS 10,000 AIdeas competition 2025*
+
+# Aevoxis Warden Engine: Spec-Drift Chronometer
+
+## What This Solves
+
+Enterprises deploying autonomous AI systems face a critical 
+governance problem: how do you detect when an AI system has 
+drifted from its original human-approved specification, and 
+how do you enforce accountability when it does?
+
+The Spec-Drift Chronometer monitors autonomous AI outputs in 
+real time, detects misalignment between human intent and system 
+behaviour, and triggers a Human-in-the-Loop Justification Gate 
+before any non-compliant action is executed.
+
+EU AI Act Article 14 human oversight requirements are engineered 
+directly into the architecture, not added as an afterthought. 
+Deployed on AWS Lambda, Frankfurt region (eu-central-1) for 
+EU data residency compliance.
+
+---
+
+## How It Works
+
+**Drift Detection:** The system continuously monitors autonomous 
+AI outputs against the original human-approved specification 
+stored in the governance ledger. Any deviation triggers an alert.
+
+**Human-in-the-Loop Justification Gate:** When drift is detected, 
+the system halts execution and requires a human to provide a 
+documented business justification before proceeding. This 
+justification is evaluated against EU AI Act Article 14 guardrails 
+in real time.
+
+**Audit Trail:** Every drift event, justification, and governance 
+decision is logged as a downloadable, deterministic record suitable 
+for regulatory reporting.
+
+---
+
+## Tech Stack
+
+- Frontend: Next.js (React) with Tailwind CSS
+- Backend: FastAPI (Python) with Mangum
+- Infrastructure: AWS Lambda, Frankfurt region (eu-central-1)
+- AI Layer: Amazon Bedrock AgentCore and Strands SDK
+- Governance: Kiro-compliant steering and policy ledger
+
+---
+
+## Quick Start
+
+**1. Backend**
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Ensure your .kiro/steering vault is populated with your 
+human-intent specifications before starting.
+
+**2. Frontend**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:3000 to access the dashboard.
+
+**3. Run a Drift Audit**
+
+Trigger a drift event by modifying a resource in your AWS 
+Sandbox (for example, changing an S3 bucket policy). Click 
+Run Audit on the dashboard. If drift is detected, the 
+Justification Gate will activate. Download the Audit Trail 
+for compliance reporting.
+
+---
+
+## EU AI Act Alignment
+
+| Requirement | Implementation |
+|---|---|
+| Article 14: Human Oversight | Justification Gate blocks execution until human approval |
+| Article 12: Record Keeping | Deterministic audit trail exported on every governance decision |
+| Article 13: Transparency | Real-time drift coefficient visible to all stakeholders |
+| Article 50: Disclosure | System identifies itself as AI-governed at every interaction point |
+
+---
+
+## About
+
+Built by Vinita Silaparasetty, AI Governance Engineer and 
+founder of Aevoxis Solutions, operating under SMartDe eG, Germany.
+
+Website: https://aevoxis.de
+LinkedIn: https://linkedin.com/in/vinita-silaparasetty
+Email: info@aevoxis.de
