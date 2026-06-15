@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import GovernanceActions from "./GovernanceActions";
 import JustificationGate from "./JustificationGate";
+import WelcomeModal from "./WelcomeModal";
 
 interface DriftPoint {
   time: string;
@@ -217,6 +218,8 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
           </section>
         </div>
       </div>
+
+      <WelcomeModal />
 
       {/* Justification Gate Modal */}
       {showGate && (
