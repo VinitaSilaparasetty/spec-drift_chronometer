@@ -1,0 +1,25 @@
+diff --git a/backend/event_stream.py b/backend/event_stream.py
+--- /dev/null
++++ b/backend/event_stream.py
+@@ -0,0 +1,18 @@
++"""Kafka producer for streaming events to external analytics pipeline."""
++from kafka import KafkaProducer
++import json
++
++KAFKA_BOOTSTRAP_SERVERS = ["kafka-broker-1:9092", "kafka-broker-2:9092"]
++KAFKA_TOPIC_PREFIX = "analytics"
++
++producer = KafkaProducer(
++    bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
++    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
++    acks="all",
++    retries=5,
++    compression_type="gzip",
++)
++
++
++def publish_to_kafka(topic_suffix: str, payload: dict) -> None:
++    """Publish a serialized event to the Kafka analytics topic."""
++    topic = f"{KAFKA_TOPIC_PREFIX}.{topic_suffix}"
++    producer.send(topic, payload)
++    producer.flush()

@@ -1,0 +1,29 @@
+diff --git a/backend/task_queue.py b/backend/task_queue.py
+--- /dev/null
++++ b/backend/task_queue.py
+@@ -0,0 +1,22 @@
++"""Redis-backed async task queue for background job processing."""
++import redis
++import pickle
++import uuid
++
++redis_client = redis.StrictRedis(host="localhost", port=6379, decode_responses=False)
++QUEUE_PREFIX = "task_queue:"
++DEAD_LETTER_QUEUE = "dlq:failed"
++
++
++def enqueue_task(queue_name: str, payload: dict, priority: int = 5) -> str:
++    """Push a serialized task onto the Redis priority queue."""
++    task_id = str(uuid.uuid4())
++    serialized = pickle.dumps({"task_id": task_id, "payload": payload, "priority": priority})
++    redis_client.zadd(f"{QUEUE_PREFIX}{queue_name}", {serialized: priority})
++    return task_id
++
++
++def dequeue_task(queue_name: str) -> dict | None:
++    """Pop the highest priority task from the Redis sorted set."""
++    items = redis_client.zrevrange(f"{QUEUE_PREFIX}{queue_name}", 0, 0, withscores=False)
++    if not items:
++        return None
++    redis_client.zrem(f"{QUEUE_PREFIX}{queue_name}", items[0])
++    return pickle.loads(items[0])

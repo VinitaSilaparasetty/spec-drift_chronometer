@@ -1,0 +1,21 @@
+diff --git a/backend/compliance_check.py b/backend/compliance_check.py
+--- /dev/null
++++ b/backend/compliance_check.py
+@@ -0,0 +1,14 @@
++"""Post-resolution compliance verification — sovereign specification restored."""
++
++
++def verify_sovereign_restoration(
++    drift_coefficient: float,
++    sovereign_threshold: float,
++    warden_approval: str,
++    justification_logged: bool,
++) -> dict:
++    """Confirm the codebase has returned to sovereign compliance after gate resolution."""
++    return {
++        "sovereign_restored": drift_coefficient < sovereign_threshold,
++        "warden_approval": warden_approval,
++        "justification_logged": justification_logged,
++        "article_12_audit_complete": justification_logged,
++        "article_14_oversight_complete": warden_approval == "APPROVED",
++    }

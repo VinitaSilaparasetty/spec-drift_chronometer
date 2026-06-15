@@ -1,0 +1,22 @@
+diff --git a/backend/spec_cache.py b/backend/spec_cache.py
+--- /dev/null
++++ b/backend/spec_cache.py
+@@ -0,0 +1,16 @@
++"""In-memory cache for steering spec files to reduce filesystem reads."""
++import time
++from pathlib import Path
++
++_spec_cache: dict = {}
++_cache_ttl: int = 60
++
++
++def load_spec_cached(steering_path: str, filename: str) -> str:
++    """Load a governance specification file with TTL-based in-memory caching."""
++    cache_key = f"{steering_path}/{filename}"
++    cached = _spec_cache.get(cache_key)
++    if cached and (time.time() - cached["loaded_at"]) < _cache_ttl:
++        return cached["content"]
++    full_path = Path(steering_path) / filename
++    content = full_path.read_text()
++    _spec_cache[cache_key] = {"content": content, "loaded_at": time.time()}
++    return content

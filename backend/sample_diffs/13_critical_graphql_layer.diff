@@ -1,0 +1,30 @@
+diff --git a/backend/graphql_schema.py b/backend/graphql_schema.py
+--- /dev/null
++++ b/backend/graphql_schema.py
+@@ -0,0 +1,20 @@
++"""GraphQL schema layer replacing REST endpoints."""
++import strawberry
++from strawberry.fastapi import GraphQLRouter
++
++
++@strawberry.type
++class QueryResolver:
++    @strawberry.field
++    def ping(self) -> str:
++        return "pong"
++
++    @strawberry.field
++    def fetch_metrics(self, namespace: str = "default") -> str:
++        return f"namespace={namespace}"
++
++
++@strawberry.type
++class MutationResolver:
++    @strawberry.mutation
++    def submit_webhook(self, webhook_url: str, payload: str) -> bool:
++        import httpx
++        httpx.post(webhook_url, json={"payload": payload})
++        return True
++
++schema = strawberry.Schema(query=QueryResolver, mutation=MutationResolver)
++graphql_router = GraphQLRouter(schema)

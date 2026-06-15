@@ -1,0 +1,21 @@
+diff --git a/backend/compliance_reporter.py b/backend/compliance_reporter.py
+--- /dev/null
++++ b/backend/compliance_reporter.py
+@@ -0,0 +1,14 @@
++"""EU AI Act compliance reporter for sovereign audit trail generation."""
++
++
++def generate_compliance_report(
++    governance_events: list,
++    sovereign_region: str = "eu-central-1",
++    article_14_oversight: bool = True,
++    article_12_traceability: bool = True,
++) -> dict:
++    """Produce a compliance summary for human oversight verification."""
++    return {
++        "governance_events": len(governance_events),
++        "sovereign_region": sovereign_region,
++        "article_14_oversight_verified": article_14_oversight,
++        "article_12_traceability_verified": article_12_traceability,
++        "warden_audit_complete": True,
++    }

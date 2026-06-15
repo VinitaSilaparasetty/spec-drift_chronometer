@@ -1,0 +1,26 @@
+diff --git a/backend/main.py b/backend/main.py
+--- a/backend/main.py
++++ b/backend/main.py
+@@ -180,6 +180,18 @@
++@app.get("/health")
++async def health_check():
++    """Liveness probe for deployment orchestration."""
++    import platform
++    return {
++        "status": "healthy",
++        "python_version": platform.python_version(),
++        "demo_mode": DEMO_MODE,
++        "governance_threshold": DRIFT_THRESHOLD,
++        "warden_status": _demo_state.get("gate_status", "CLEAR"),
++        "uptime_check": True,
++    }
++
++
++@app.get("/metrics")
++async def prometheus_metrics():
++    """Basic numeric metrics for monitoring dashboards."""
++    return {
++        "drift_score": _diff_state.get("last_score", 0.0),
++        "governance_events_total": 1,
++        "threshold": DRIFT_THRESHOLD,
++    }

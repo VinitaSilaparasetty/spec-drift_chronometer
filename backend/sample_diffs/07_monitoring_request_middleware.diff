@@ -1,0 +1,22 @@
+diff --git a/backend/middleware.py b/backend/middleware.py
+--- /dev/null
++++ b/backend/middleware.py
+@@ -0,0 +1,18 @@
++"""Request middleware for latency tracking and basic rate limiting."""
++import time
++from fastapi import Request
++from starlette.middleware.base import BaseHTTPMiddleware
++
++
++class LatencyMiddleware(BaseHTTPMiddleware):
++    """Track request latency and attach governance context headers."""
++
++    async def dispatch(self, request: Request, call_next):
++        started = time.monotonic()
++        response = await call_next(request)
++        latency_ms = (time.monotonic() - started) * 1000
++        response.headers["X-Governance-Latency-Ms"] = str(round(latency_ms, 2))
++        response.headers["X-Warden-Status"] = "active"
++        if latency_ms > 200:
++            response.headers["X-Governance-Latency-Breach"] = "true"
++        return response

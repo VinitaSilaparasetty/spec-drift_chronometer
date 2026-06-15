@@ -1,0 +1,27 @@
+diff --git a/backend/oauth_handler.py b/backend/oauth_handler.py
+--- /dev/null
++++ b/backend/oauth_handler.py
+@@ -0,0 +1,22 @@
++"""OAuth2 authorization code flow handler."""
++import httpx
++import secrets
++
++OAUTH_CLIENT_ID = "your-client-id"
++OAUTH_CLIENT_SECRET = "your-client-secret"
++OAUTH_REDIRECT_URI = "https://example.com/callback"
++OAUTH_SCOPES = ["openid", "profile", "email"]
++
++
++async def exchange_authorization_code(code: str, state: str) -> dict:
++    """Exchange OAuth2 authorization code for bearer access token."""
++    async with httpx.AsyncClient() as http:
++        payload = {
++            "grant_type": "authorization_code",
++            "code": code,
++            "redirect_uri": OAUTH_REDIRECT_URI,
++            "client_id": OAUTH_CLIENT_ID,
++            "client_secret": OAUTH_CLIENT_SECRET,
++        }
++        resp = await http.post("https://auth.example.com/oauth/token", data=payload)
++        tokens = resp.json()
++        return {"access_token": tokens["access_token"], "refresh_token": tokens.get("refresh_token")}

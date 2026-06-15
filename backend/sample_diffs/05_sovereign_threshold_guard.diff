@@ -1,0 +1,21 @@
+diff --git a/backend/threshold_guard.py b/backend/threshold_guard.py
+--- /dev/null
++++ b/backend/threshold_guard.py
+@@ -0,0 +1,14 @@
++"""Sovereign threshold guardian — enforces drift limits under Article 14."""
++
++
++def enforce_drift_threshold(
++    semantic_drift: float,
++    sovereign_threshold: float,
++    justification_required: bool = True,
++) -> dict:
++    """Block architectural changes that exceed the sovereign governance threshold."""
++    breach_detected = semantic_drift >= sovereign_threshold
++    return {
++        "drift": semantic_drift,
++        "threshold": sovereign_threshold,
++        "breach_detected": breach_detected,
++        "justification_gate_active": breach_detected and justification_required,
++        "warden_oversight_engaged": breach_detected,
++    }

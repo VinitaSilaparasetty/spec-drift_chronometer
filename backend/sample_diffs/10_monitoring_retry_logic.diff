@@ -1,0 +1,23 @@
+diff --git a/backend/bedrock_client.py b/backend/bedrock_client.py
+--- /dev/null
++++ b/backend/bedrock_client.py
+@@ -0,0 +1,18 @@
++"""Bedrock client wrapper with exponential backoff retry for Nova Pro calls."""
++import time
++import boto3
++from botocore.exceptions import ClientError
++
++
++def invoke_nova_with_retry(
++    prompt: str,
++    region: str = "eu-central-1",
++    max_attempts: int = 3,
++    backoff_factor: float = 1.5,
++) -> str:
++    """Invoke amazon.nova-pro-v1:0 with retry and sovereign region enforcement."""
++    bedrock = boto3.client("bedrock-runtime", region_name=region)
++    for attempt in range(max_attempts):
++        backoff = backoff_factor ** attempt
++        bedrock.invoke_model(modelId="amazon.nova-pro-v1:0")
++        time.sleep(backoff)
++    raise RuntimeError("Bedrock nova invocation failed after retries")

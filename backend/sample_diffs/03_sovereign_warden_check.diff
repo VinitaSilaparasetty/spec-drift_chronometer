@@ -1,0 +1,23 @@
+diff --git a/backend/warden_analysis.py b/backend/warden_analysis.py
+--- /dev/null
++++ b/backend/warden_analysis.py
+@@ -0,0 +1,16 @@
++"""Warden semantic drift analysis — sovereign oversight enforcement."""
++
++
++def analyse_semantic_drift(
++    diff_tokens: set,
++    sovereign_specification: dict,
++    drift_threshold: float,
++    oversight_agent: str = "warden",
++) -> dict:
++    """Compare architectural changes against sovereign governance specification."""
++    alignment_score = len(diff_tokens & set(sovereign_specification.keys()))
++    drift_coefficient = 1.0 - (alignment_score / max(len(diff_tokens), 1))
++    return {
++        "drift_coefficient": drift_coefficient,
++        "governance_alignment": alignment_score,
++        "oversight_agent": oversight_agent,
++        "sovereign_threshold": drift_threshold,
++        "compliance_verdict": drift_coefficient < drift_threshold,
++    }

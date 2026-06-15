@@ -1,0 +1,19 @@
+diff --git a/backend/main.py b/backend/main.py
+--- a/backend/main.py
++++ b/backend/main.py
+@@ -220,6 +220,14 @@
++@app.get("/audit/history")
++async def audit_history(page: int = 1, page_size: int = 20):
++    """Paginated audit event history for governance dashboard."""
++    audit_path = get_vault_path()
++    if not audit_path:
++        return {"events": [], "page": page, "total": 0}
++    offset = (page - 1) * page_size
++    lines = open(audit_path).readlines() if Path(audit_path).exists() else []
++    paginated = lines[offset: offset + page_size]
++    return {
++        "events": paginated,
++        "page": page,
++        "page_size": page_size,
++        "warden_audit_source": audit_path,
++    }

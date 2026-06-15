@@ -1,8 +1,9 @@
 import os
+import re
 import json
-import random
 import hashlib
 import uuid
+import subprocess
 from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,76 +31,203 @@ app.add_middleware(
 )
 
 # ---------------------------------------------------------------------------
-# Demo state machine — cycles through pre-scripted governance scenarios
+# Semantic diff analysis — replaces hardcoded scenario values
 # ---------------------------------------------------------------------------
 
+_BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT    = os.path.join(_BACKEND_DIR, "..")
+_SAMPLE_DIFFS_DIR = os.path.join(_BACKEND_DIR, "sample_diffs")
+
+# Gate state machine (CLEAR → TRIGGERED → PENDING → RESOLVED)
 _demo_state: dict = {
-    "tick": 0,
-    "scenario_index": 0,
-    "gate_status": "CLEAR",   # CLEAR | TRIGGERED | PENDING | RESOLVED
+    "gate_status": "CLEAR",
     "gate_justification": None,
     "gate_decision": None,
     "gate_reasoning": None,
 }
 
-# (drift_value, status_label) pairs that tell a complete governance story
-_demo_scenarios = [
-    # Phase 1 — Sovereign baseline
-    (0.0012, "SOVEREIGN"),
-    (0.0009, "SOVEREIGN"),
-    (0.0015, "SOVEREIGN"),
-    (0.0011, "SOVEREIGN"),
-    (0.0018, "SOVEREIGN"),
-    # Phase 2 — Drift rising, warden monitoring
-    (0.0031, "MONITORING"),
-    (0.0044, "MONITORING"),
-    (0.0058, "MONITORING"),
-    (0.0063, "MONITORING"),
-    (0.0071, "MONITORING"),
-    # Phase 3 — Critical: Justification Gate triggers
-    (0.0082, "CRITICAL_DRIFT"),
-    (0.0091, "CRITICAL_DRIFT"),
-    (0.0105, "CRITICAL_DRIFT"),
-    (0.0112, "CRITICAL_DRIFT"),
-    (0.0099, "CRITICAL_DRIFT"),
-    # Phase 4 — Gate pending (holds until user acts)
-    (0.0095, "GATE_PENDING"),
-    (0.0093, "GATE_PENDING"),
-    (0.0088, "GATE_PENDING"),
-    # Phase 5 — Resolution, returning to sovereign
-    (0.0042, "RESOLVING"),
-    (0.0028, "RESOLVING"),
-    (0.0015, "SOVEREIGN"),
-    (0.0011, "SOVEREIGN"),
-    (0.0009, "SOVEREIGN"),
-]
+# Tracks which sample diff we are on and the last computed score
+_diff_state: dict = {
+    "sample_index": 0,
+    "last_score": 0.0012,
+    "last_diff_name": "",
+}
+
+# Tokens that carry no architectural signal — filtered before comparison
+_CODE_STOP = frozenset({
+    # Python primitives and builtins
+    "false", "true", "none", "bool", "list", "dict", "float", "bytes",
+    "tuple", "isinstance", "hasattr", "getattr", "setattr", "property",
+    "super", "range", "enumerate", "classmethod", "staticmethod",
+    # Common code verbs with no domain meaning
+    "print", "write", "encode", "decode", "format", "split", "join",
+    "lower", "upper", "strip", "replace", "append", "extend", "update",
+    "close", "yield", "raise", "break", "continue", "return",
+    # Generic nouns that appear in every codebase
+    "class", "event", "object", "method", "instance", "logger",
+    "error", "query", "index", "result", "message", "content",
+    "param", "value", "values", "count", "field", "entry",
+    "client", "server", "async", "await", "scope", "items",
+})
 
 
-def _advance_demo() -> tuple[float, str]:
-    state = _demo_state
-    state["tick"] += 1
+def _tokenize(text: str) -> set:
+    """Extract meaningful domain tokens (≥5 chars) filtering code boilerplate."""
+    parts = re.split(r"[^a-zA-Z0-9]+", text)
+    return {
+        p.lower() for p in parts
+        if len(p) >= 5 and not p.isdigit() and p.lower() not in _CODE_STOP
+    }
 
-    # Pause advancement while gate is awaiting user interaction
-    if state["gate_status"] not in ("TRIGGERED", "PENDING"):
-        state["scenario_index"] = (state["scenario_index"] + 1) % len(_demo_scenarios)
 
-    drift_val, status_label = _demo_scenarios[state["scenario_index"]]
+def _map_drift_score(raw: float) -> float:
+    """
+    Map raw token-divergence ratio [0, 1] to the dashboard range [0.001, 0.014].
+    Breakpoints keep sovereign / monitoring / critical zones proportional to
+    DRIFT_THRESHOLD so the gate still triggers at the right absolute value.
+    """
+    raw = max(0.0, min(1.0, raw))
+    if raw < 0.45:                          # sovereign zone
+        return round(0.001 + (raw / 0.45) * 0.003, 4)
+    elif raw < 0.72:                        # monitoring zone
+        t = (raw - 0.45) / 0.27
+        return round(0.004 + t * 0.0035, 4)
+    else:                                   # critical zone
+        t = (raw - 0.72) / 0.28
+        return round(DRIFT_THRESHOLD + t * 0.0065, 4)
 
-    # Auto-trigger gate when we first hit CRITICAL_DRIFT
-    if status_label == "CRITICAL_DRIFT" and state["gate_status"] == "CLEAR":
-        state["gate_status"] = "TRIGGERED"
 
-    # Override labels based on live gate state
-    if state["gate_status"] == "TRIGGERED":
-        status_label = "CRITICAL_DRIFT"
-        drift_val = round(random.uniform(0.009, 0.012), 4)
-    elif state["gate_status"] == "PENDING":
-        status_label = "GATE_PENDING"
-    elif state["gate_status"] == "RESOLVED":
-        drift_val = round(random.uniform(0.0008, 0.003), 4)
-        status_label = "SOVEREIGN"
+def _score_diff_locally(diff: str, spec_text: str) -> float:
+    """
+    Genuine semantic drift score: fraction of meaningful diff tokens that are
+    absent from the spec-file vocabulary, mapped to the dashboard range.
+    """
+    added = "\n".join(
+        line[1:] for line in diff.splitlines()
+        if line.startswith("+") and not line.startswith("+++")
+    )
+    diff_tokens = _tokenize(added)
+    if len(diff_tokens) < 4:
+        return 0.0012
 
-    return drift_val, status_label
+    spec_tokens = _tokenize(spec_text)
+    if not spec_tokens:
+        return 0.005
+
+    unknown = diff_tokens - spec_tokens
+    raw = len(unknown) / len(diff_tokens)
+    return _map_drift_score(raw)
+
+
+def _score_diff_bedrock(diff: str, specs: dict) -> float | None:
+    """Nova Lite semantic scorer for production. Returns None on any failure."""
+    try:
+        import boto3
+        region = os.environ.get("AWS_REGION", "eu-central-1")
+        client = boto3.client("bedrock-runtime", region_name=region)
+        spec_summary = "\n\n".join(
+            f"## {k}\n{v[:400]}" for k, v in list(specs.items())[:3]
+        )
+        prompt = (
+            "You are an architectural compliance analyzer. "
+            "Reply with ONLY a decimal number 0.0–1.0 representing how much "
+            "the code change below DEVIATES from the specifications. "
+            "0.0 = perfectly aligned. 1.0 = complete violation.\n\n"
+            f"SPECIFICATIONS:\n{spec_summary[:1200]}\n\n"
+            f"GIT DIFF:\n{diff[:800]}\n\nDrift score:"
+        )
+        resp = client.invoke_model(
+            modelId="amazon.nova-lite-v1:0",
+            body=json.dumps({"messages": [{"role": "user", "content": prompt}], "max_tokens": 8}),
+        )
+        text = json.loads(resp["body"].read())["output"]["message"]["content"][0]["text"]
+        match = re.search(r"[01]?\.?\d+", text.strip())
+        if not match:
+            return None
+        raw = max(0.0, min(1.0, float(match.group())))
+        return _map_drift_score(raw)
+    except Exception:
+        return None
+
+
+def _get_sample_diff() -> str:
+    """Return the next sample diff in the cycle."""
+    try:
+        files = sorted(f for f in os.listdir(_SAMPLE_DIFFS_DIR) if f.endswith(".diff"))
+        if not files:
+            return ""
+        idx = _diff_state["sample_index"] % len(files)
+        fname = files[idx]
+        _diff_state["last_diff_name"] = fname
+        with open(os.path.join(_SAMPLE_DIFFS_DIR, fname)) as fh:
+            return fh.read()
+    except Exception:
+        return ""
+
+
+def _read_git_diff() -> str:
+    """Read the latest commit diff from the real repository."""
+    try:
+        r = subprocess.run(
+            ["git", "diff", "HEAD~1", "HEAD", "--unified=3", "--no-color",
+             "--diff-filter=M", "--", "*.py", "*.ts", "*.tsx"],
+            capture_output=True, text=True, cwd=_REPO_ROOT, timeout=10,
+        )
+        diff = r.stdout.strip()
+        if not diff:
+            r = subprocess.run(
+                ["git", "diff", "--cached", "--unified=3", "--no-color"],
+                capture_output=True, text=True, cwd=_REPO_ROOT, timeout=10,
+            )
+            diff = r.stdout.strip()
+        return diff
+    except Exception:
+        return ""
+
+
+def _compute_drift() -> tuple[float, str]:
+    """
+    Compute a genuine semantic drift score from the current diff.
+    In DEMO_MODE cycles through pre-crafted sample diffs and scores them locally.
+    In production reads the real git diff and scores with Nova Lite (Bedrock),
+    falling back to the local scorer if Bedrock is unavailable.
+    """
+    gate = _demo_state["gate_status"]
+
+    # Pause diff advancement while gate is awaiting human action
+    if gate not in ("TRIGGERED", "PENDING"):
+        _diff_state["sample_index"] += 1
+
+    diff = _get_sample_diff() if DEMO_MODE else _read_git_diff()
+
+    specs = _load_spec_intent()
+    spec_text = " ".join(specs.values())
+
+    score: float | None = None
+    if not DEMO_MODE:
+        score = _score_diff_bedrock(diff, specs)
+    if score is None:
+        score = _score_diff_locally(diff, spec_text) if diff else 0.0012
+
+    _diff_state["last_score"] = score
+
+    # Gate trigger: first time score strictly exceeds threshold
+    if score > DRIFT_THRESHOLD and gate == "CLEAR":
+        _demo_state["gate_status"] = "TRIGGERED"
+        gate = "TRIGGERED"
+
+    # Derive status label
+    if gate == "TRIGGERED":
+        return score, "CRITICAL_DRIFT"
+    if gate == "PENDING":
+        return score, "GATE_PENDING"
+    if gate == "RESOLVED":
+        return min(score, DRIFT_THRESHOLD * 0.45), "RESOLVING"
+    if score > DRIFT_THRESHOLD:
+        return score, "CRITICAL_DRIFT"
+    if score >= DRIFT_THRESHOLD * 0.55:
+        return score, "MONITORING"
+    return score, "SOVEREIGN"
 
 
 # ---------------------------------------------------------------------------
@@ -208,12 +336,7 @@ def _bedrock_analyze(drift_value: float, justification: str) -> dict:
 
 @app.get("/drift")
 async def get_drift():
-    if DEMO_MODE:
-        drift_val, status = _advance_demo()
-    else:
-        drift_val = round(random.uniform(0.0001, 0.0130), 4)
-        status = "CRITICAL_DRIFT" if drift_val > DRIFT_THRESHOLD else "SOVEREIGN"
-
+    drift_val, status = _compute_drift()
     return {
         "drift": drift_val,
         "status": status,
@@ -296,8 +419,7 @@ async def run_audit():
     audit_path = get_vault_path()
     os.makedirs(os.path.dirname(audit_path), exist_ok=True)
 
-    idx = _demo_state["scenario_index"]
-    drift_val = _demo_scenarios[idx][0] if DEMO_MODE else round(random.uniform(0.0001, 0.012), 4)
+    drift_val = _diff_state["last_score"]
     spec_hash = hashlib.sha256(b"spec-drift-chronometer-v1.0-sovereign").hexdigest()[:16]
     run_hash = hashlib.sha256(f"{datetime.utcnow().isoformat()}".encode()).hexdigest()[:16]
 

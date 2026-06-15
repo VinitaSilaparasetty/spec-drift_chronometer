@@ -1,0 +1,23 @@
+diff --git a/backend/intent_ledger.py b/backend/intent_ledger.py
+--- /dev/null
++++ b/backend/intent_ledger.py
+@@ -0,0 +1,18 @@
++"""Intent ledger — immutable record of sovereign architectural decisions."""
++
++
++def validate_against_sovereign_spec(
++    drift_coefficient: float,
++    architectural_intent: str,
++    threshold: float,
++    warden_reasoning: str,
++) -> dict:
++    """Validate a proposed change against the sovereign specification ledger."""
++    compliant = drift_coefficient < threshold
++    governance_verdict = "APPROVED" if compliant else "SOVEREIGN_OVERRIDE_REQUIRED"
++    return {
++        "compliance": compliant,
++        "governance_verdict": governance_verdict,
++        "architectural_intent": architectural_intent,
++        "warden_reasoning": warden_reasoning,
++        "sovereign_threshold": threshold,
++    }
