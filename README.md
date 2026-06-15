@@ -268,7 +268,7 @@ The Warden also enforces quality: a weak justification (`"okay"`) scores 29/100 
 
 ## License
 
-MIT — see `LICENSE`.
+Licensed under AGPL-3.0. For commercial licensing or enterprise deployment, contact info@aevoxis.de
 
 ---
 
