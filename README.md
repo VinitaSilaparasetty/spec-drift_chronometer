@@ -224,14 +224,6 @@ See `.env.example` for the full list with descriptions. Key variables:
 
 ---
 
-## Screenshots
-
-See [`screenshots/README.md`](screenshots/README.md) for detailed
-descriptions of every screen including the dashboard, Justification Gate, and
-audit trail output.
-
----
-
 ## Sample Audit Trail Output
 
 Every governance decision generates a structured audit file at `.kiro/audit/last_sync.audit`, downloadable directly from the dashboard. This is the Article 12 record-keeping artifact — a tamper-evident, SHA-256-verified log of every human oversight event.
