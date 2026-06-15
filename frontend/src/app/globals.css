@@ -24,3 +24,89 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── driver.js dark theme overrides ─────────────────────────────────────── */
+.sdc-popover.driver-popover {
+  background-color: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 2px;
+  color: #a1a1aa;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  max-width: 280px;
+  padding: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+}
+
+.sdc-popover .driver-popover-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #10b981;
+  margin-bottom: 8px;
+  font-family: var(--font-geist-mono), monospace;
+}
+
+.sdc-popover .driver-popover-description {
+  color: #a1a1aa;
+  line-height: 1.6;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+}
+
+.sdc-popover .driver-popover-progress-text {
+  color: #52525b;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+}
+
+.sdc-popover .driver-popover-navigation-btns {
+  margin-top: 14px;
+  gap: 6px;
+}
+
+.sdc-popover .driver-popover-prev-btn,
+.sdc-popover .driver-popover-next-btn {
+  background: #b45309;
+  border: none;
+  border-radius: 2px;
+  color: #fff;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  cursor: pointer;
+  text-shadow: none;
+}
+
+.sdc-popover .driver-popover-prev-btn:hover,
+.sdc-popover .driver-popover-next-btn:hover {
+  background: #d97706;
+}
+
+.sdc-popover .driver-popover-close-btn {
+  color: #52525b;
+  font-size: 16px;
+  top: 12px;
+  right: 12px;
+}
+
+.sdc-popover .driver-popover-close-btn:hover {
+  color: #a1a1aa;
+}
+
+.sdc-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: #27272a;
+}
+.sdc-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: #27272a;
+}
+.sdc-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: #27272a;
+}
+.sdc-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: #27272a;
+}

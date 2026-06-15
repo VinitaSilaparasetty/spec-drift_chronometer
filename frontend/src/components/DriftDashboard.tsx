@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import GovernanceActions from "./GovernanceActions";
 import JustificationGate from "./JustificationGate";
-import WelcomeModal from "./WelcomeModal";
+import GuidedTour from "./GuidedTour";
 
 interface DriftPoint {
   time: string;
@@ -117,12 +117,12 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
       {/* Stat Cards */}
       <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "System Health", value: currentStatus || "CONNECTING", color: statusColor(currentStatus) },
-          { label: "Drift Index", value: currentDrift > 0 ? currentDrift.toFixed(4) : "0.0000", color: currentDrift > DRIFT_THRESHOLD ? "text-red-400" : "text-blue-400" },
-          { label: "Spec Compliance", value: specCompliance, color: specCompliance === "100%" ? "text-emerald-400" : specCompliance === "BREACH" ? "text-red-400" : "text-amber-400" },
-          { label: "Warden Status", value: gateStatus === "CLEAR" || gateStatus === "RESOLVED" ? "Observing" : gateStatus === "TRIGGERED" ? "GATE OPEN" : "Analyzing", color: gateStatus === "TRIGGERED" ? "text-red-400" : gateStatus === "PENDING" ? "text-amber-400" : "text-amber-300" },
+          { label: "System Health", value: currentStatus || "CONNECTING", color: statusColor(currentStatus), id: "" },
+          { label: "Drift Index", value: currentDrift > 0 ? currentDrift.toFixed(4) : "0.0000", color: currentDrift > DRIFT_THRESHOLD ? "text-red-400" : "text-blue-400", id: "tour-drift-index" },
+          { label: "Spec Compliance", value: specCompliance, color: specCompliance === "100%" ? "text-emerald-400" : specCompliance === "BREACH" ? "text-red-400" : "text-amber-400", id: "" },
+          { label: "Warden Status", value: gateStatus === "CLEAR" || gateStatus === "RESOLVED" ? "Observing" : gateStatus === "TRIGGERED" ? "GATE OPEN" : "Analyzing", color: gateStatus === "TRIGGERED" ? "text-red-400" : gateStatus === "PENDING" ? "text-amber-400" : "text-amber-300", id: "" },
         ].map((s) => (
-          <div key={s.label} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-sm">
+          <div key={s.label} id={s.id || undefined} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-sm">
             <p className="text-zinc-500 text-[10px] uppercase tracking-wider mb-1">{s.label}</p>
             <p className={`text-xl font-mono font-bold ${s.color}`}>{s.value}</p>
           </div>
@@ -133,7 +133,7 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Drift Chart */}
-        <section className="lg:col-span-2 bg-zinc-900/30 border border-zinc-800 p-6 rounded-sm">
+        <section id="tour-drift-chart" className="lg:col-span-2 bg-zinc-900/30 border border-zinc-800 p-6 rounded-sm">
           <h2 className="text-xs font-bold uppercase tracking-widest mb-5 flex items-center gap-2">
             <span className="w-1 h-4 bg-emerald-500" /> Drift Variance Analysis
           </h2>
@@ -173,14 +173,14 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
           </p>
 
           {/* Governance Actions */}
-          <GovernanceActions />
+          <div id="tour-governance"><GovernanceActions /></div>
         </section>
 
         {/* Right panel */}
         <div className="flex flex-col gap-6">
 
           {/* Warden Logs */}
-          <section className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-sm flex-1">
+          <section id="tour-warden-log" className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-sm flex-1">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4">Warden Activity Log</h2>
             <div className="space-y-3 font-mono text-[10px] leading-relaxed">
               {logs.map((log, i) => (
@@ -197,7 +197,7 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
           </section>
 
           {/* Spec Vault Summary */}
-          <section className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-sm">
+          <section id="tour-spec-vault" className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-sm">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4">Sovereign Spec Vault</h2>
             <div className="space-y-2 font-mono text-[10px]">
               {[
@@ -219,7 +219,7 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
         </div>
       </div>
 
-      <WelcomeModal />
+      <GuidedTour />
 
       {/* Justification Gate Modal */}
       {showGate && (
