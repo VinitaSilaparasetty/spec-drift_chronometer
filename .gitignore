@@ -66,6 +66,9 @@ __pycache__/
 .venv/
 .venv/
 
+# Backup files
+*.bak
+
 # Final Backend Build Artifacts
 backend/bin/
 backend/lib/
