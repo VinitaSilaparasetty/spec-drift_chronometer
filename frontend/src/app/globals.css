@@ -26,6 +26,10 @@ body {
 }
 
 /* ── driver.js dark theme overrides ─────────────────────────────────────── */
+.driver-active-element {
+  outline: 2px solid #7f1d1d !important;
+  box-shadow: 0 0 0 4px rgba(127,29,29,0.4) !important;
+}
 .sdc-popover.driver-popover {
   background-color: #09090b;
   border: 1px solid #27272a;
