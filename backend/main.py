@@ -7,6 +7,7 @@ from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from mangum import Mangum
 
 DEMO_MODE = os.environ.get("DEMO_MODE", "true").lower() in ("1", "true", "yes")
 DRIFT_THRESHOLD = float(os.environ.get("DRIFT_THRESHOLD", "0.0075"))
@@ -376,6 +377,8 @@ async def erase_audit():
         "note": "All justification text and audit records erased per GDPR Article 17.",
     }
 
+
+handler = Mangum(app)
 
 if __name__ == "__main__":
     import uvicorn
