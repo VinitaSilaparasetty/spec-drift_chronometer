@@ -242,7 +242,6 @@ Every governance decision generates a structured audit file at `.kiro/audit/last
 ╚══════════════════════════════════════════════════════════════╝
 
 Timestamp:          2026-06-14 15:24:15 UTC
-Mode:               DEMO_MODE (simulated)
 Drift Index:        0.0082
 Threshold:          0.0075
 Gate Status:        RESOLVED
@@ -268,6 +267,8 @@ Justification:    Migrating auth layer to OAuth2 to satisfy GDPR Article 7
 
 ══════════════════════════════════════════════════════════════
 ```
+
+Generated in demo mode. Production deployments replace simulated Bedrock calls with live Amazon Nova Pro reasoning in eu-central-1.
 
 The Warden also enforces quality: a weak justification (`"okay"`) scores 29/100 and is **REJECTED** with a full reasoning trace — proving the gate is not a rubber stamp.
 
