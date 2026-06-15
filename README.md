@@ -272,11 +272,3 @@ MIT — see `LICENSE`.
 
 ---
 
-## About
-
-Built by Vinita Silaparasetty, AI Governance Engineer and
-founder of Aevoxis Solutions, operating under SMartDe eG, Germany.
-
-Website: https://aevoxis.de
-LinkedIn: https://linkedin.com/in/vinita-silaparasetty
-Email: info@aevoxis.de
