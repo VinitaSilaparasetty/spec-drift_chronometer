@@ -8,6 +8,15 @@ Aevoxis Solutions | aevoxis.de**
 
 ---
 
+## Live Demo
+
+[Try the Spec-Drift Chronometer](https://spec-drift-chronometer.aevoxis.de)
+
+Running in DEMO_MODE. No AWS credentials required.
+Backend processing in Frankfurt, EU Central.
+
+---
+
 # Aevoxis Warden Engine: Spec-Drift Chronometer
 
 
