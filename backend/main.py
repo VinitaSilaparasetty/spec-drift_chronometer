@@ -2,6 +2,7 @@ import os
 import json
 import random
 import hashlib
+import uuid
 from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,13 +10,20 @@ from fastapi.responses import FileResponse
 
 DEMO_MODE = os.environ.get("DEMO_MODE", "true").lower() in ("1", "true", "yes")
 DRIFT_THRESHOLD = float(os.environ.get("DRIFT_THRESHOLD", "0.0075"))
+AUDIT_RETENTION_DAYS = int(os.environ.get("AUDIT_RETENTION_DAYS", "90"))
+DYNAMODB_TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", "")
+
+# CORS: allow all origins in DEMO_MODE; lock to explicit list in production.
+# Set CORS_ORIGINS=https://your-frontend.com,https://other.com in production.
+_raw_cors = os.environ.get("CORS_ORIGINS", "")
+CORS_ORIGINS = [o.strip() for o in _raw_cors.split(",") if o.strip()] or ["*"]
 
 app = FastAPI(title="Spec-Drift Chronometer — Aevoxis Warden Engine")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=CORS_ORIGINS != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -111,6 +119,20 @@ def _load_spec_intent() -> dict:
             with open(path) as f:
                 specs[fname] = f.read()
     return specs
+
+
+def _write_dynamo_audit(record: dict) -> None:
+    """Article 12: persist audit record to DynamoDB with TTL-based retention."""
+    if DEMO_MODE or not DYNAMODB_TABLE_NAME:
+        return
+    try:
+        import boto3
+        ttl = int(datetime.utcnow().timestamp()) + AUDIT_RETENTION_DAYS * 86400
+        dynamodb = boto3.resource("dynamodb", region_name=os.environ.get("AWS_REGION", "eu-central-1"))
+        table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+        table.put_item(Item={**record, "ttl": ttl})
+    except Exception as exc:
+        print(f"[Warden] DynamoDB write failed: {exc}")
 
 
 def _bedrock_analyze(drift_value: float, justification: str) -> dict:
@@ -236,8 +258,10 @@ async def gate_submit(request: Request):
     # Append gate record to the audit file
     audit_path = get_vault_path()
     os.makedirs(os.path.dirname(audit_path), exist_ok=True)
+    event_id = str(uuid.uuid4())
+    timestamp_str = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
     with open(audit_path, "a") as f:
-        f.write(f"\n--- JUSTIFICATION GATE LOG [{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}] ---\n")
+        f.write(f"\n--- JUSTIFICATION GATE LOG [{timestamp_str}] ---\n")
         f.write(f"Drift Value:      {drift_value}\n")
         f.write(f"Justification:    {justification}\n")
         f.write(f"Warden Decision:  {_demo_state['gate_decision']}\n")
@@ -245,6 +269,18 @@ async def gate_submit(request: Request):
         f.write(f"Reasoning Trace:\n{result['reasoning_trace']}\n")
         f.write(f"Verification Hash: {result['hash']}\n")
         f.write(f"{'─' * 60}\n")
+
+    # Article 12: persist to DynamoDB in production for durable audit trail
+    _write_dynamo_audit({
+        "event_id": event_id,
+        "event_type": "JUSTIFICATION_GATE",
+        "timestamp": timestamp_str,
+        "drift_value": str(drift_value),
+        "justification": justification,
+        "decision": _demo_state["gate_decision"],
+        "model": result["model"],
+        "verification_hash": result["hash"],
+    })
 
     return {
         "decision": _demo_state["gate_decision"],
@@ -300,6 +336,45 @@ async def serve_audit():
     if os.path.exists(audit_path):
         return FileResponse(audit_path, filename="spec_drift_audit_trail.txt")
     return {"error": "No audit found. Click 'Run Audit' first."}
+
+
+@app.delete("/audit/erase")
+async def erase_audit():
+    """GDPR Article 17 — right to erasure. Clears all stored justification text and audit records."""
+    erased = []
+
+    # Clear local audit file
+    audit_path = get_vault_path()
+    if os.path.exists(audit_path):
+        os.remove(audit_path)
+        erased.append("local_audit_file")
+
+    # Clear in-memory justification text (the only personal data held in memory)
+    _demo_state["gate_justification"] = None
+    _demo_state["gate_decision"] = None
+    _demo_state["gate_reasoning"] = None
+    erased.append("in_memory_state")
+
+    # Delete from DynamoDB in production
+    if not DEMO_MODE and DYNAMODB_TABLE_NAME:
+        try:
+            import boto3
+            dynamodb = boto3.resource("dynamodb", region_name=os.environ.get("AWS_REGION", "eu-central-1"))
+            table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+            scan = table.scan(ProjectionExpression="event_id")
+            with table.batch_writer() as batch:
+                for item in scan.get("Items", []):
+                    batch.delete_item(Key={"event_id": item["event_id"]})
+            erased.append("dynamodb_records")
+        except Exception as exc:
+            print(f"[Warden] DynamoDB erase failed: {exc}")
+
+    return {
+        "status": "erased",
+        "erased": erased,
+        "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "note": "All justification text and audit records erased per GDPR Article 17.",
+    }
 
 
 if __name__ == "__main__":

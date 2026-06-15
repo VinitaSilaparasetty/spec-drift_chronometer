@@ -96,6 +96,9 @@ export default function JustificationGate({ driftValue, gateStatus, onResolved, 
           {!isResolved ? (
             <>
               <div>
+                <p className="text-[10px] font-mono text-zinc-500 bg-zinc-900/60 border border-zinc-800 rounded-sm px-3 py-2 mb-3 leading-relaxed">
+                  <span className="text-zinc-400 font-bold">Data notice:</span> Your justification text will be logged in the compliance audit trail under EU AI Act Article 12 and retained for 90 days. Do not include sensitive personal data. Records can be erased on request under GDPR Article 17.
+                </p>
                 <label className="block text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-2">
                   Sovereign Justification — Required for Article 14 Compliance
                 </label>
