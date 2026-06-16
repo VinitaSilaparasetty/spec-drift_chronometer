@@ -63,8 +63,8 @@ before any non-compliant action is executed.
 
 EU AI Act Article 14 human oversight requirements are engineered
 directly into the architecture, not added as an afterthought.
-Deployed on AWS Lambda, Frankfurt region (eu-central-1) for
-EU data residency compliance.
+Deployed on Render (backend) and Cloudflare Pages (frontend).
+AWS Lambda deployment is also supported via the included Dockerfile and Procfile.
 
 ---
 
@@ -115,7 +115,7 @@ The script will:
 
 Open **http://localhost:3000** in your browser.
 
-**Demo flow (automatic, ~90 seconds):**
+**Demo flow (automatic, ~45 seconds):**
 1. Dashboard loads — drift is low, system status is SOVEREIGN
 2. Drift rises through MONITORING into CRITICAL_DRIFT
 3. The **Justification Gate** modal appears automatically
@@ -225,11 +225,11 @@ See `.env.example` for the full list with descriptions. Key variables:
 
 ## Tech Stack
 
-- Frontend: Next.js (React) with Tailwind CSS
-- Backend: FastAPI (Python) with Mangum
-- Infrastructure: AWS Lambda, Frankfurt region (eu-central-1)
-- AI Layer: Amazon Bedrock AgentCore and Strands SDK
-- Governance: Kiro-compliant steering and policy ledger
+- Frontend: Next.js (React) with Tailwind CSS — deployed on Cloudflare Pages
+- Backend: FastAPI (Python) with Mangum — deployed on Render
+- AI Layer: Amazon Bedrock (Nova Pro for justification analysis, Nova Lite for semantic drift scoring)
+- Governance: Spec Vault (`.kiro/steering/`) with real semantic git diff analysis
+- Lambda: Dockerfile and Procfile included for AWS Lambda deployment
 
 ---
 
@@ -256,7 +256,7 @@ Sovereign Region:                          eu-central-1 (Frankfurt)
 System Integrity:                          100%
 
 ── ACTIVE SPECIFICATIONS (.kiro/steering/spec.json) ───────────
-Semantic Drift Threshold:  0.15
+Semantic Drift Threshold:  0.0075
 Max Latency (ms):          200
 Primary Model:             amazon.nova-pro-v1:0
 Audit Trail Active:        true
