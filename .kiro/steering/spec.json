@@ -7,7 +7,7 @@
     "enforce_human_in_the_loop": true
   },
   "control_parameters": {
-    "semantic_drift_threshold": 0.15,
+    "semantic_drift_threshold": 0.0075,
     "max_latency_ms": 200,
     "primary_reasoning_model": "amazon.nova-pro-v1:0",
     "fallback_model": "amazon.nova-lite-v1:0"
