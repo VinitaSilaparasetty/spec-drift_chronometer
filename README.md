@@ -275,6 +275,118 @@ The Warden also enforces quality: a weak justification (`"okay"`) scores 29/100 
 
 ---
 
+## Connecting to Your Production AI System
+
+The sections above describe what the Spec-Drift Chronometer does internally.
+This section answers the question a technical buyer actually asks:
+**"How do I plug this into the AI system I already have running?"**
+
+The answer is a single LangChain callback. You attach it to your existing chain
+and it enforces Article 14 governance on every execution — no restructuring of
+your pipeline required.
+
+### How it works
+
+```
+User query
+    │
+    ▼
+Your LangChain RAG chain
+    │
+    ├── WardenCallbackHandler.on_chain_start()
+    │         │
+    │         ▼
+    │     GET /drift  →  check gate status
+    │         │
+    │         ├── gate = CLEAR    →  proceed normally
+    │         └── gate = TRIGGERED →  raise WardenGateBlockedException
+    │                                 (execution halted — human sign-off required)
+    ▼
+Retrieval → Generation → Response
+```
+
+When the Warden detects that the committed code has drifted from the
+human-authored spec (`.kiro/steering/`), it sets the gate to `TRIGGERED`.
+The callback picks this up on the next chain call and raises an exception
+that halts generation until an operator opens the governance dashboard,
+submits a justification, and receives Warden Agent approval.
+
+### Integration — three files, one line that matters
+
+```bash
+cd integrations/langchain_rag
+pip install -r requirements.txt
+```
+
+```python
+from warden_client import WardenClient
+from warden_callback import WardenCallbackHandler
+
+warden = WardenClient(base_url="https://your-warden-api.example.com")
+handler = WardenCallbackHandler(warden, dashboard_url="https://your-dashboard.example.com")
+
+# ← This single line wires EU AI Act Article 14 governance into your chain
+rag_chain = (your_existing_chain).with_config(callbacks=[handler])
+```
+
+### Behaviour at the gate
+
+When the gate triggers, the chatbot returns a structured message instead
+of generating an answer:
+
+```
+╔══════════════════════════════════════════════════════════╗
+║  WARDEN GATE BLOCKED — Execution halted (Article 14)    ║
+╚══════════════════════════════════════════════════════════╝
+  Drift index : 0.0091
+  Threshold   : 0.0075
+  Gate status : TRIGGERED
+
+  Action required: open the governance dashboard and submit
+  a justification to the Warden Agent before retrying.
+
+  Dashboard → https://spec-drift-chronometer.aevoxis.de
+```
+
+The operator submits a justification via the dashboard. The Warden Agent
+(Amazon Nova Pro) evaluates it against the spec files and returns
+APPROVED or REJECTED with an Intent Alignment Score. Once approved,
+the gate clears and the chatbot resumes accepting queries.
+
+### Full working example
+
+`integrations/langchain_rag/rag_chatbot.py` is a complete RAG chatbot
+with FAISS vector store, OpenAI or fake LLM (no API key required for demo),
+and the Warden callback pre-wired.
+
+```bash
+# Demo mode — fake LLM, no OpenAI key needed. Requires Warden running locally.
+OPENAI_API_KEY=demo python integrations/langchain_rag/rag_chatbot.py
+
+# Live mode — real OpenAI + real Warden
+WARDEN_API_URL=https://your-warden.example.com \
+OPENAI_API_KEY=sk-... \
+python integrations/langchain_rag/rag_chatbot.py
+```
+
+### Integration directory
+
+```
+integrations/
+└── langchain_rag/
+    ├── requirements.txt     # langchain-core, langchain-community, faiss-cpu
+    ├── warden_client.py     # Thin HTTP client for the Warden API
+    ├── warden_callback.py   # LangChain BaseCallbackHandler (the integration point)
+    └── rag_chatbot.py       # Complete working example
+```
+
+The same `WardenCallbackHandler` pattern works with any LangChain-compatible
+chain — LangGraph agents, OpenAI Assistants via LangChain, custom LCEL pipelines.
+The Warden API is framework-agnostic: any HTTP client can call `/drift` and
+`/gate/submit` directly.
+
+---
+
 ## License
 
 Licensed under AGPL-3.0. For commercial licensing or enterprise deployment, contact info@aevoxis.de
