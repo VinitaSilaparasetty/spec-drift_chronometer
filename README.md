@@ -93,6 +93,8 @@ When the gate triggers, chain execution is blocked and the operator is directed 
 
 Full integration code, a LangGraph example, and setup verification are in [`integrations/langchain_rag/`](integrations/langchain_rag/).
 
+Having trouble connecting? See the [Troubleshooting](https://aevoxis.de/blog/eu-ai-act-langchain-rag-integration#troubleshooting) section of the integration guide.
+
 ---
 
 ## Architecture
