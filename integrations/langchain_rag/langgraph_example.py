@@ -5,26 +5,24 @@ Shows that the same WardenCallbackHandler used in rag_chatbot.py works
 identically with a LangGraph graph — the callback fires on graph entry
 the same way it fires on LCEL chain entry.
 
-Environment variables:
-    WARDEN_API_URL   — URL of the Warden Engine (default: http://localhost:8000)
-    WARDEN_DASH_URL  — URL of the governance dashboard (default: http://localhost:3000)
-    OPENAI_API_KEY   — Set to "demo" to run without a real API key
-
-Quick start:
-    OPENAI_API_KEY=demo python langgraph_example.py
+Setup:
+    cp .env.example .env
+    # Fill in OPENAI_API_KEY in .env
+    pip install -r requirements.txt
+    python langgraph_example.py
 """
 
 from __future__ import annotations
 import os
 import logging
 from typing import TypedDict, List
+from dotenv import load_dotenv
 
+load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 WARDEN_API_URL = os.environ.get("WARDEN_API_URL", "http://localhost:8000")
 WARDEN_DASH_URL = os.environ.get("WARDEN_DASH_URL", "http://localhost:3000")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-DEMO_LLM = not OPENAI_API_KEY or OPENAI_API_KEY == "demo"
 
 # ---------------------------------------------------------------------------
 # Warden governance — identical setup to rag_chatbot.py
@@ -47,6 +45,7 @@ warden_handler = WardenCallbackHandler(
 
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
 SAMPLE_DOCS = [
     "Our refund policy allows returns within 30 days of purchase with a valid receipt.",
@@ -55,25 +54,8 @@ SAMPLE_DOCS = [
     "All personal data is processed in EU data centres in compliance with GDPR.",
 ]
 
-if DEMO_LLM:
-    from langchain_community.embeddings import FakeEmbeddings
-    from langchain_core.language_models.fake_chat_models import FakeListChatModel
-
-    embeddings = FakeEmbeddings(size=384)
-    llm = FakeListChatModel(
-        responses=[
-            "Refunds are available within 30 days of purchase with a valid receipt.",
-            "Yes, premium members get free shipping on orders over €50.",
-            "Customer support is available Monday to Friday, 09:00–18:00 CET.",
-        ]
-    )
-    print("[Demo] Running with fake LLM and embeddings — no API key required.\n")
-else:
-    from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-
-    embeddings = OpenAIEmbeddings()
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    print("[Live] Using OpenAI models.\n")
+embeddings = OpenAIEmbeddings()
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 docs = [Document(page_content=text) for text in SAMPLE_DOCS]
 vectorstore = FAISS.from_documents(docs, embeddings)
