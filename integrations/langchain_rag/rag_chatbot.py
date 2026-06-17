@@ -75,10 +75,10 @@ from langchain_core.documents import Document
 
 if DEMO_LLM:
     from langchain_community.embeddings import FakeEmbeddings
-    from langchain_core.language_models import FakeListLLM
+    from langchain_core.language_models.fake_chat_models import FakeListChatModel
 
     embeddings = FakeEmbeddings(size=384)
-    llm = FakeListLLM(
+    llm = FakeListChatModel(
         responses=[
             "Based on our policy, refunds are available within 30 days of purchase.",
             "Premium members enjoy free shipping on orders over €50.",
