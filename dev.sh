@@ -3,13 +3,22 @@ set -e
 
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
+# ── Load .env if present (never committed — see .gitignore) ───────────────────
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source "$PROJECT_ROOT/.env"
+    set +a
+    echo "  Loaded .env"
+fi
+
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║         Spec-Drift Chronometer — Dev Launcher           ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo ""
 
-# ── Defaults ──────────────────────────────────────────────────────────────────
+# ── Defaults (env vars from .env take precedence over these) ──────────────────
 export DEMO_MODE="${DEMO_MODE:-true}"
 export DRIFT_THRESHOLD="${DRIFT_THRESHOLD:-0.0075}"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
