@@ -120,6 +120,30 @@ def _score_diff_locally(diff: str, spec_text: str) -> float:
     return _map_drift_score(raw)
 
 
+def _score_diff_locally_production(diff: str, spec_text: str) -> float:
+    """
+    Production fallback scorer: linear mapping so gate reliably triggers when
+    the majority of diff vocabulary is absent from the spec vault.
+    raw=0 → 0.001 (no drift), raw≈0.52 → above DRIFT_THRESHOLD, raw=1.0 → 0.014.
+    Does NOT use _map_drift_score — that function is calibrated for demo sample diffs.
+    """
+    added = "\n".join(
+        line[1:] for line in diff.splitlines()
+        if line.startswith("+") and not line.startswith("+++")
+    )
+    diff_tokens = _tokenize(added)
+    if len(diff_tokens) < 4:
+        return 0.0012
+
+    spec_tokens = _tokenize(spec_text)
+    if not spec_tokens:
+        return 0.005
+
+    unknown = diff_tokens - spec_tokens
+    raw = len(unknown) / len(diff_tokens)
+    return round(0.001 + raw * 0.013, 4)
+
+
 def _score_diff_bedrock(diff: str, specs: dict) -> float | None:
     """Nova Lite semantic scorer for production. Returns None on any failure."""
     try:
@@ -171,7 +195,7 @@ def _read_git_diff() -> str:
     try:
         r = subprocess.run(
             ["git", "diff", "HEAD~1", "HEAD", "--unified=3", "--no-color",
-             "--diff-filter=M", "--", "*.py", "*.ts", "*.tsx"],
+             "--", "*.py", "*.ts", "*.tsx"],
             capture_output=True, text=True, cwd=_REPO_ROOT, timeout=10,
         )
         diff = r.stdout.strip()
@@ -208,7 +232,11 @@ def _compute_drift() -> tuple[float, str]:
     if not DEMO_MODE:
         score = _score_diff_bedrock(diff, specs)
     if score is None:
-        score = _score_diff_locally(diff, spec_text) if diff else 0.0012
+        if diff:
+            scorer = _score_diff_locally if DEMO_MODE else _score_diff_locally_production
+            score = scorer(diff, spec_text)
+        else:
+            score = 0.0012
 
     _diff_state["last_score"] = score
 
