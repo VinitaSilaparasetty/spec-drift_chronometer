@@ -1,0 +1,10 @@
+blockchain
+consensus
+cryptographic
+merkle
+decentralized
+immutable
+ledger
+distributed
+hashing
+verification
