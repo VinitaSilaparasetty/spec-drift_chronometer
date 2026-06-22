@@ -1,0 +1,1 @@
+# SYNC: synchronous blocking database write operation bypassing async queue
