@@ -1,0 +1,4 @@
+requests
+gitpython
+pandas
+tabulate

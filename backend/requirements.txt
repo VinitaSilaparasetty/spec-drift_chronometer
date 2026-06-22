@@ -2,3 +2,5 @@ fastapi
 mangum
 pydantic
 uvicorn
+google-generativeai
+requests

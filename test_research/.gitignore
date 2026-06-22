@@ -1,0 +1,13 @@
+# API keys and secrets - never commit these
+*.env
+.env
+.env.*
+secrets.py
+keys.py
+*_key.txt
+*_token.txt
+
+# Test results
+results/
+__pycache__/
+*.pyc

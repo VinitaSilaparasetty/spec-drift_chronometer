@@ -1,13 +1,14 @@
 import os
 import re
 import json
+import time
 import hashlib
 import uuid
 import subprocess
 from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from mangum import Mangum
 
 DEMO_MODE = os.environ.get("DEMO_MODE", "true").lower() in ("1", "true", "yes")
@@ -239,6 +240,15 @@ def get_vault_path() -> str:
     return os.path.join(root, "..", ".kiro", "audit", "last_sync.audit")
 
 
+def _load_tech_md() -> str:
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".kiro", "steering", "tech.md")
+    try:
+        with open(path) as f:
+            return f.read()
+    except Exception:
+        return ""
+
+
 def _load_spec_intent() -> dict:
     specs: dict = {}
     steering_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".kiro", "steering")
@@ -331,6 +341,138 @@ def _bedrock_analyze(drift_value: float, justification: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Real-LLM gate evaluator (activated only when WARDEN_LLM env var is set)
+# ---------------------------------------------------------------------------
+
+def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str) -> dict:
+    """Route gate evaluation to Gemini or HuggingFace when WARDEN_LLM is set."""
+    run_hash = hashlib.sha256(
+        f"{drift_value}{justification}{datetime.utcnow().isoformat()}".encode()
+    ).hexdigest()[:16]
+
+    tech_md = _load_tech_md()
+    prompt = (
+        f"You are evaluating a governance justification for an AI system code change. "
+        f"The system has detected specification drift with a drift score of {drift_value}. "
+        f"The human submitted this justification: {justification}. "
+        f"The relevant specification is: {tech_md}. "
+        f"Evaluate whether this justification is adequate for the detected drift. "
+        f"Return only a valid JSON object with exactly these fields: "
+        f"score (integer 0 to 100 where 0 is completely inadequate and 100 is perfectly adequate), "
+        f"decision (string, either APPROVED or REJECTED, use APPROVED for scores above 70), "
+        f"reasoning (string, 2 to 3 sentences explaining the score). "
+        f"Return only the JSON object, no other text."
+    )
+
+    def _build_trace(model_name: str, score: int, decision: str, reasoning: str) -> str:
+        return (
+            f"WARDEN ANALYSIS ({model_name})\n"
+            f"{'━' * 60}\n\n"
+            f"Drift Value Detected:   {drift_value:.4f}\n"
+            f"Intent Alignment Score: {score}/100\n"
+            f"Model Fingerprint:      {model_name}\n"
+            f"Verification Hash:      {run_hash}\n\n"
+            f"Reasoning:\n{reasoning}\n\n"
+            f"{'━' * 60}\n"
+            f"WARDEN DECISION: {decision}\n"
+        )
+
+    if warden_llm == "gemini":
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+        if not gemini_key:
+            return {"http_error": "GEMINI_API_KEY environment variable not set"}
+        try:
+            import google.generativeai as genai  # type: ignore
+            genai.configure(api_key=gemini_key)
+            model_obj = genai.GenerativeModel("gemini-1.5-flash")
+            response = model_obj.generate_content(prompt)
+            raw = response.text.strip()
+            raw = re.sub(r"^```[a-z]*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw.strip())
+            parsed = json.loads(raw)
+            score = int(parsed["score"])
+            decision = str(parsed["decision"]).upper()
+            reasoning = str(parsed["reasoning"])
+            return {
+                "approved": decision == "APPROVED",
+                "reasoning_trace": _build_trace("gemini-1.5-flash", score, decision, reasoning),
+                "model": "gemini-1.5-flash",
+                "hash": run_hash,
+                "score": score,
+            }
+        except Exception as exc:
+            fallback_msg = f"Response parsing failed: {str(exc)[:200]}"
+            print(f"[Warden] Gemini error: {exc}")
+            return {
+                "approved": False,
+                "reasoning_trace": _build_trace("gemini-1.5-flash", 0, "REJECTED", fallback_msg),
+                "model": "gemini-1.5-flash",
+                "hash": run_hash,
+                "score": 0,
+            }
+
+    elif warden_llm == "huggingface":
+        hf_key = os.environ.get("HF_API_KEY")
+        if not hf_key:
+            return {"http_error": "HF_API_KEY environment variable not set"}
+        import requests as _req  # type: ignore
+        hf_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+        headers = {"Authorization": f"Bearer {hf_key}", "Content-Type": "application/json"}
+        payload = {"inputs": prompt, "parameters": {"max_new_tokens": 512, "return_full_text": False}}
+        raw_text = ""
+
+        def _parse_hf(resp_json):
+            if isinstance(resp_json, list) and resp_json:
+                text = resp_json[0].get("generated_text", "")
+            else:
+                text = str(resp_json)
+            match = re.search(r"\{.*?\}", text, re.DOTALL)
+            return json.loads(match.group() if match else text)
+
+        try:
+            resp = _req.post(hf_url, headers=headers, json=payload, timeout=60)
+            raw_text = resp.text[:200]
+            if resp.status_code == 503:
+                time.sleep(20)
+                resp = _req.post(hf_url, headers=headers, json=payload, timeout=60)
+                raw_text = resp.text[:200]
+            resp.raise_for_status()
+            parsed = _parse_hf(resp.json())
+            score = int(parsed["score"])
+            decision = str(parsed["decision"]).upper()
+            reasoning = str(parsed["reasoning"])
+            return {
+                "approved": decision == "APPROVED",
+                "reasoning_trace": _build_trace("mistralai/Mistral-7B-Instruct-v0.2", score, decision, reasoning),
+                "model": "mistralai/Mistral-7B-Instruct-v0.2",
+                "hash": run_hash,
+                "score": score,
+            }
+        except (json.JSONDecodeError, KeyError) as exc:
+            print(f"[Warden] HuggingFace parse warning: {exc}")
+            fallback_msg = f"Response parsing failed: {raw_text}"
+            return {
+                "approved": False,
+                "reasoning_trace": _build_trace("mistralai/Mistral-7B-Instruct-v0.2", 0, "REJECTED", fallback_msg),
+                "model": "mistralai/Mistral-7B-Instruct-v0.2",
+                "hash": run_hash,
+                "score": 0,
+            }
+        except Exception as exc:
+            fallback_msg = f"Response parsing failed: {raw_text or str(exc)[:200]}"
+            print(f"[Warden] HuggingFace error: {exc}")
+            return {
+                "approved": False,
+                "reasoning_trace": _build_trace("mistralai/Mistral-7B-Instruct-v0.2", 0, "REJECTED", fallback_msg),
+                "model": "mistralai/Mistral-7B-Instruct-v0.2",
+                "hash": run_hash,
+                "score": 0,
+            }
+
+    return {"http_error": f"Unknown WARDEN_LLM value: '{warden_llm}'. Supported: 'gemini', 'huggingface'"}
+
+
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
@@ -370,10 +512,19 @@ async def gate_submit(request: Request):
     if not justification:
         return {"error": "Justification cannot be empty."}
 
+    warden_llm = os.environ.get("WARDEN_LLM", "").strip().lower()
+    llm_override = None
+    llm_score = None
+    if warden_llm:
+        llm_override = _warden_llm_analyze(warden_llm, drift_value, justification)
+        if "http_error" in llm_override:
+            return JSONResponse(status_code=500, content={"error": llm_override["http_error"]})
+        llm_score = llm_override.get("score")
+
     _demo_state["gate_justification"] = justification
     _demo_state["gate_status"] = "PENDING"
 
-    result = _bedrock_analyze(drift_value, justification)
+    result = llm_override if llm_override is not None else _bedrock_analyze(drift_value, justification)
 
     _demo_state["gate_decision"] = "APPROVED" if result["approved"] else "REJECTED"
     _demo_state["gate_reasoning"] = result["reasoning_trace"]
@@ -406,12 +557,15 @@ async def gate_submit(request: Request):
         "verification_hash": result["hash"],
     })
 
-    return {
+    response = {
         "decision": _demo_state["gate_decision"],
         "reasoning_trace": result["reasoning_trace"],
         "model": result["model"],
         "verification_hash": result["hash"],
     }
+    if llm_score is not None:
+        response["score"] = llm_score
+    return response
 
 
 @app.post("/audit")
