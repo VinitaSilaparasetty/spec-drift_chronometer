@@ -1,0 +1,25 @@
+╔══════════════════════════════════════════════════════════════╗
+║      SPEC-DRIFT CHRONOMETER — SOVEREIGN AUDIT TRAIL         ║
+╚══════════════════════════════════════════════════════════════╝
+
+Timestamp:          2026-06-22 16:43:20 UTC
+Mode:               DEMO_MODE (simulated)
+Drift Index:        0.0012
+Threshold:          0.0075
+Gate Status:        CLEAR
+Spec Hash:          bf40efdc39297d64
+Run Hash:           53b1cce4794fcfc2
+
+── GOVERNANCE COMPLIANCE ──────────────────────────────────────
+EU AI Act Article 14 (Human Oversight):   VERIFIED
+EU AI Act Article 12 (Transparency):      VERIFIED
+Sovereign Region:                          eu-central-1 (Frankfurt)
+System Integrity:                          100%
+
+── ACTIVE SPECIFICATIONS (.kiro/steering/spec.json) ───────────
+Semantic Drift Threshold:  0.15
+Max Latency (ms):          200
+Primary Model:             amazon.nova-pro-v1:0
+Audit Trail Active:        true
+
+══════════════════════════════════════════════════════════════

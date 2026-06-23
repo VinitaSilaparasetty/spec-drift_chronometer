@@ -7,7 +7,7 @@ keys.py
 *_key.txt
 *_token.txt
 
-# Test results
-results/
+# Test results — committed for IEEE paper reproducibility
+# results/
 __pycache__/
 *.pyc

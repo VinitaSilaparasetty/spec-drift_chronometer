@@ -1,0 +1,90 @@
+=== TEST 1 — WEAK [W1] ===
+JUSTIFICATION: ok
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      e5f0a6ecb90e4ec2\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "e5f0a6ecb90e4ec2",
+  "score": 0
+}
+
+=== TEST 2 — WEAK [W2] ===
+JUSTIFICATION: approved
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      2f39684779ed3efe\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "2f39684779ed3efe",
+  "score": 0
+}
+
+=== TEST 3 — WEAK [W3] ===
+JUSTIFICATION: I updated the code
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      825a1090ccbe33e7\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "825a1090ccbe33e7",
+  "score": 0
+}
+
+=== TEST 4 — MEDIUM [M1] ===
+JUSTIFICATION: Changing the function to improve performance
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      ea8be91ba6674fae\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "ea8be91ba6674fae",
+  "score": 0
+}
+
+=== TEST 5 — MEDIUM [M2] ===
+JUSTIFICATION: Updated the model configuration for better results
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      1d876239c4cff785\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "1d876239c4cff785",
+  "score": 0
+}
+
+=== TEST 6 — MEDIUM [M3] ===
+JUSTIFICATION: Refactored this section as part of cleanup work
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      bfca4240ccbb128a\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "bfca4240ccbb128a",
+  "score": 0
+}
+
+=== TEST 7 — STRONG [S1] ===
+JUSTIFICATION: Migrating authentication layer from SHA-256 to bcrypt to align with OWASP security recommendations for password hashing. Reviewed by lead engineer on 2026-06-23, ticket SEC-441. Spec updated to reflect bcrypt as the approved hashing algorithm.
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      39407a8862a2d604\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "39407a8862a2d604",
+  "score": 0
+}
+
+=== TEST 8 — STRONG [S2] ===
+JUSTIFICATION: Replacing synchronous database write with async pattern to comply with EARS requirement INTENT-003 which mandates non-blocking DB operations. Architecture review board approved 2026-06-20, ticket ARCH-289.
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      b7ec19a05db854ba\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "b7ec19a05db854ba",
+  "score": 0
+}
+
+=== TEST 9 — STRONG [S3] ===
+JUSTIFICATION: Adding OAuth2 integration to satisfy GDPR Article 7 compliance requirement identified in legal review dated 2026-06-15. Planned in original spec under product.md section 3.2.
+{
+  "decision": "REJECTED",
+  "reasoning_trace": "WARDEN ANALYSIS (meta-llama/Llama-3.1-8B-Instruct:auto)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nDrift Value Detected:   0.0095\nIntent Alignment Score: 0/100\nModel Fingerprint:      meta-llama/Llama-3.1-8B-Instruct:auto\nVerification Hash:      9458c2ddc819b0f4\n\nReasoning:\nResponse parsing failed: {\"error\":\"Invalid username or password.\"}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nWARDEN DECISION: REJECTED\n",
+  "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
+  "verification_hash": "9458c2ddc819b0f4",
+  "score": 0
+}
+
