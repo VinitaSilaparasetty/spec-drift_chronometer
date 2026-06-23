@@ -100,9 +100,11 @@ points across runs). Decision outcomes (APPROVED / REJECTED) are stable.
 
 ## Notes for Reproducibility
 
-**LLM non-determinism:** Mistral's scores will vary slightly between runs. The
-decisions (APPROVED / REJECTED) are stable; individual scores may shift by ±5–10
-points. This matches the published results.
+**LLM non-determinism:** The backend uses `mistral-small-2412` with `temperature=0`.
+Temperature zero makes outputs deterministic for a given model version — you should
+get identical scores across runs. If Mistral ever deprecates `mistral-small-2412`,
+update the model name in `backend/main.py` and note that FM10's MITIGATED finding
+may not hold on a different model version.
 
 **Gate state resets:** The failure mode script restarts the backend between tests
 that require a fresh gate state. If you interrupt the script mid-run, kill any
@@ -157,6 +159,6 @@ print(result["drift_score"], result["new_tokens"])
 
 | Provider | Key variable | Free tier | Notes |
 |----------|-------------|-----------|-------|
-| Mistral | `MISTRAL_API_KEY` | Yes (trial credits) | Recommended. Reliable from all environments. |
+| Mistral | `MISTRAL_API_KEY` | Yes (trial credits) | Recommended. Model pinned to `mistral-small-2412`, `temperature=0`. |
 | Gemini | `GEMINI_API_KEY` | Yes | Works but not tested across all failure modes |
 | HuggingFace | `HF_API_KEY` | **Pro required** | Free keys return auth errors on the inference router |

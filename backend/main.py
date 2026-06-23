@@ -506,7 +506,7 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
         import requests as _req  # type: ignore
         mistral_url = "https://api.mistral.ai/v1/chat/completions"
         headers = {"Authorization": f"Bearer {mistral_key}", "Content-Type": "application/json"}
-        payload = {"model": "mistral-small-latest", "messages": [{"role": "user", "content": prompt}], "max_tokens": 512}
+        payload = {"model": "mistral-small-2412", "messages": [{"role": "user", "content": prompt}], "max_tokens": 512, "temperature": 0}
         raw_text = ""
 
         def _parse_mistral(resp_json):
@@ -527,8 +527,8 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
             reasoning = str(parsed["reasoning"])
             return {
                 "approved": decision == "APPROVED",
-                "reasoning_trace": _build_trace("mistral-small-latest", score, decision, reasoning),
-                "model": "mistral-small-latest",
+                "reasoning_trace": _build_trace("mistral-small-2412", score, decision, reasoning),
+                "model": "mistral-small-2412",
                 "hash": run_hash,
                 "score": score,
             }
@@ -537,8 +537,8 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
             fallback_msg = f"Response parsing failed: {raw_text}"
             return {
                 "approved": False,
-                "reasoning_trace": _build_trace("mistral-small-latest", 0, "REJECTED", fallback_msg),
-                "model": "mistral-small-latest",
+                "reasoning_trace": _build_trace("mistral-small-2412", 0, "REJECTED", fallback_msg),
+                "model": "mistral-small-2412",
                 "hash": run_hash,
                 "score": 0,
             }
@@ -547,8 +547,8 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
             print(f"[Warden] Mistral error: {exc}")
             return {
                 "approved": False,
-                "reasoning_trace": _build_trace("mistral-small-latest", 0, "REJECTED", fallback_msg),
-                "model": "mistral-small-latest",
+                "reasoning_trace": _build_trace("mistral-small-2412", 0, "REJECTED", fallback_msg),
+                "model": "mistral-small-2412",
                 "hash": run_hash,
                 "score": 0,
             }
