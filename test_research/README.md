@@ -11,7 +11,7 @@ from a Production Warden Agent"*
 ### What you need
 
 - Python 3.12+
-- Git
+- Git with a configured user identity (`git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"`) — the failure mode tests make real commits; git rejects commits without this
 - A **Mistral API key** (free trial credits available at console.mistral.ai — this is the only external dependency)
 
 That is all. No AWS account. No HuggingFace Pro. No local GPU.
