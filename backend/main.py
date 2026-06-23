@@ -444,13 +444,15 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
         if not hf_key:
             return {"http_error": "HF_API_KEY environment variable not set"}
         import requests as _req  # type: ignore
-        hf_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+        hf_url = "https://router.huggingface.co/v1/chat/completions"
         headers = {"Authorization": f"Bearer {hf_key}", "Content-Type": "application/json"}
-        payload = {"inputs": prompt, "parameters": {"max_new_tokens": 512, "return_full_text": False}}
+        payload = {"model": "meta-llama/Llama-3.1-8B-Instruct:auto", "messages": [{"role": "user", "content": prompt}], "max_tokens": 512}
         raw_text = ""
 
         def _parse_hf(resp_json):
-            if isinstance(resp_json, list) and resp_json:
+            if isinstance(resp_json, dict) and "choices" in resp_json:
+                text = resp_json["choices"][0]["message"]["content"]
+            elif isinstance(resp_json, list) and resp_json:
                 text = resp_json[0].get("generated_text", "")
             else:
                 text = str(resp_json)
@@ -471,8 +473,8 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
             reasoning = str(parsed["reasoning"])
             return {
                 "approved": decision == "APPROVED",
-                "reasoning_trace": _build_trace("mistralai/Mistral-7B-Instruct-v0.2", score, decision, reasoning),
-                "model": "mistralai/Mistral-7B-Instruct-v0.2",
+                "reasoning_trace": _build_trace("meta-llama/Llama-3.1-8B-Instruct:auto", score, decision, reasoning),
+                "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
                 "hash": run_hash,
                 "score": score,
             }
@@ -481,8 +483,8 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
             fallback_msg = f"Response parsing failed: {raw_text}"
             return {
                 "approved": False,
-                "reasoning_trace": _build_trace("mistralai/Mistral-7B-Instruct-v0.2", 0, "REJECTED", fallback_msg),
-                "model": "mistralai/Mistral-7B-Instruct-v0.2",
+                "reasoning_trace": _build_trace("meta-llama/Llama-3.1-8B-Instruct:auto", 0, "REJECTED", fallback_msg),
+                "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
                 "hash": run_hash,
                 "score": 0,
             }
@@ -491,13 +493,67 @@ def _warden_llm_analyze(warden_llm: str, drift_value: float, justification: str)
             print(f"[Warden] HuggingFace error: {exc}")
             return {
                 "approved": False,
-                "reasoning_trace": _build_trace("mistralai/Mistral-7B-Instruct-v0.2", 0, "REJECTED", fallback_msg),
-                "model": "mistralai/Mistral-7B-Instruct-v0.2",
+                "reasoning_trace": _build_trace("meta-llama/Llama-3.1-8B-Instruct:auto", 0, "REJECTED", fallback_msg),
+                "model": "meta-llama/Llama-3.1-8B-Instruct:auto",
                 "hash": run_hash,
                 "score": 0,
             }
 
-    return {"http_error": f"Unknown WARDEN_LLM value: '{warden_llm}'. Supported: 'gemini', 'huggingface'"}
+    elif warden_llm == "mistral":
+        mistral_key = os.environ.get("MISTRAL_API_KEY")
+        if not mistral_key:
+            return {"http_error": "MISTRAL_API_KEY environment variable not set"}
+        import requests as _req  # type: ignore
+        mistral_url = "https://api.mistral.ai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {mistral_key}", "Content-Type": "application/json"}
+        payload = {"model": "mistral-small-latest", "messages": [{"role": "user", "content": prompt}], "max_tokens": 512}
+        raw_text = ""
+
+        def _parse_mistral(resp_json):
+            if isinstance(resp_json, dict) and "choices" in resp_json:
+                text = resp_json["choices"][0]["message"]["content"]
+            else:
+                text = str(resp_json)
+            match = re.search(r"\{.*?\}", text, re.DOTALL)
+            return json.loads(match.group() if match else text)
+
+        try:
+            resp = _req.post(mistral_url, headers=headers, json=payload, timeout=60)
+            raw_text = resp.text[:200]
+            resp.raise_for_status()
+            parsed = _parse_mistral(resp.json())
+            score = int(parsed["score"])
+            decision = str(parsed["decision"]).upper()
+            reasoning = str(parsed["reasoning"])
+            return {
+                "approved": decision == "APPROVED",
+                "reasoning_trace": _build_trace("mistral-small-latest", score, decision, reasoning),
+                "model": "mistral-small-latest",
+                "hash": run_hash,
+                "score": score,
+            }
+        except (json.JSONDecodeError, KeyError) as exc:
+            print(f"[Warden] Mistral parse warning: {exc}")
+            fallback_msg = f"Response parsing failed: {raw_text}"
+            return {
+                "approved": False,
+                "reasoning_trace": _build_trace("mistral-small-latest", 0, "REJECTED", fallback_msg),
+                "model": "mistral-small-latest",
+                "hash": run_hash,
+                "score": 0,
+            }
+        except Exception as exc:
+            fallback_msg = f"Response parsing failed: {raw_text or str(exc)[:200]}"
+            print(f"[Warden] Mistral error: {exc}")
+            return {
+                "approved": False,
+                "reasoning_trace": _build_trace("mistral-small-latest", 0, "REJECTED", fallback_msg),
+                "model": "mistral-small-latest",
+                "hash": run_hash,
+                "score": 0,
+            }
+
+    return {"http_error": f"Unknown WARDEN_LLM value: '{warden_llm}'. Supported: 'gemini', 'huggingface', 'mistral'"}
 
 
 # ---------------------------------------------------------------------------

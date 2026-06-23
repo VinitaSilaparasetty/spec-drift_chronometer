@@ -20,12 +20,14 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 LLM_MODEL_NAMES = {
     "gemini": "gemini-1.5-flash",
-    "huggingface": "mistralai/Mistral-7B-Instruct-v0.2",
+    "huggingface": "meta-llama/Llama-3.1-8B-Instruct:auto",
+    "mistral": "mistral-small-latest",
 }
 
 LLM_KEY_NAMES = {
     "gemini": "GEMINI_API_KEY",
     "huggingface": "HF_API_KEY",
+    "mistral": "MISTRAL_API_KEY",
 }
 
 TEST_COMMITS = [
@@ -601,7 +603,7 @@ To run with the second LLM, restart with --llm {other_llm}
 
 def main():
     parser = argparse.ArgumentParser(description="Spec-Drift Chronometer research test suite")
-    parser.add_argument("--llm", choices=["gemini", "huggingface"], default="gemini")
+    parser.add_argument("--llm", choices=["gemini", "huggingface", "mistral"], default="gemini")
     parser.add_argument("--backend-url", default="http://localhost:8000")
     parser.add_argument("--repo-path", default=str(REPO_ROOT))
     args = parser.parse_args()
