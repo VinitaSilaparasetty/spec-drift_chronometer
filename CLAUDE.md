@@ -318,6 +318,23 @@ Added `WARDEN_LLM` and three API key rows to the Environment Variables table.
 Added `## Research` section documenting `test_research/`, both test runners,
 and the FM3 headline stat. Committed in `2790126`.
 
+### Reproducibility fixes — model pin and temperature
+Pinned the Mistral model from the floating `"mistral-small-latest"` tag to the
+specific versioned alias `"mistral-small-2412"` and added `"temperature": 0` to
+the payload in `_warden_llm_analyze()`. Both changes are in `main.py` lines 509–551.
+
+Why this matters: `mistral-small-latest` silently changes when Mistral releases a
+new version. `temperature=0` removes sampling randomness so the same model produces
+identical outputs across runs. Together these make 7 of the 8 failure mode findings
+fully deterministic for anyone reproducing the IEEE paper results.
+
+FM10 (MITIGATED) remains conditionally reproducible — it holds for `mistral-small-2412`
+specifically because that model's training data covers the MD5/bcrypt vulnerability.
+A different model version may not catch it. The README documents this caveat.
+
+Committed in `81c2af2`. `test_research/README.md` updated to reflect pinned model
+and to replace the "±5–10 points variation" note with the determinism guarantee.
+
 ---
 
 ## Known Issues / Watch Points
