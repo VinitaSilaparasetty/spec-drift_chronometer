@@ -162,6 +162,12 @@ AWS Lambda deployment is supported via the included `Dockerfile` and `Procfile`.
 | `DRIFT_THRESHOLD` | `0.0075` | Drift value that triggers the gate |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL for the frontend |
 | `AWS_REGION` | `eu-central-1` | Frankfurt — required for EU data sovereignty |
+| `WARDEN_LLM` | *(unset)* | Override the justification evaluator: `gemini`, `huggingface`, or `mistral` |
+| `GEMINI_API_KEY` | — | Required when `WARDEN_LLM=gemini` |
+| `HF_API_KEY` | — | Required when `WARDEN_LLM=huggingface` |
+| `MISTRAL_API_KEY` | — | Required when `WARDEN_LLM=mistral` |
+
+When `WARDEN_LLM` is unset the Warden defaults to Amazon Nova Pro via Bedrock in production and the built-in mock in demo mode.
 
 ---
 
@@ -198,6 +204,29 @@ Justification:    Migrating auth layer to OAuth2 to satisfy GDPR Article 7
 ```
 
 Downloadable directly from the dashboard. A weak justification scores 29/100 and is REJECTED — the gate is not a rubber stamp.
+
+---
+
+## Research
+
+The `test_research/` folder contains the empirical test suite used to generate data for an IEEE Software paper on EU AI Act compliance failure modes. It includes two test runners:
+
+- `run_tests.py` — three-phase test: real drift measurement across git commits, justification gate evaluation across nine quality levels (WEAK / MEDIUM / STRONG), and audit trail generation
+- `run_failure_modes.py` — eight structured failure mode tests covering Articles 12, 13, 14, and 17
+
+Results across all test runs are in `test_research/results/`. The headline finding from the failure mode suite: a 10-line addition to the spec vault reduced drift detection for an entire vocabulary domain from 0.0113 to 0.0044, crossing the gate threshold in reverse and silencing detection permanently — a gap not visible from reading Article 13(3b) alone.
+
+To run the justification gate tests against a live backend:
+
+```bash
+source venv/bin/activate
+DEMO_MODE=false WARDEN_LLM=mistral MISTRAL_API_KEY=your-key \
+  python -m uvicorn backend.main:app --port 8000 &
+
+cd test_research
+pip install -r requirements.txt
+python run_tests.py --llm mistral
+```
 
 ---
 
