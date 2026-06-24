@@ -275,13 +275,26 @@ class ResearchTestRunner:
         print(f"2. Restart it with: WARDEN_LLM={self.llm} uvicorn backend.main:app --port 8000")
         print("   (from the repository root directory)")
         print()
-        input("Press Enter when the backend is ready with WARDEN_LLM set...")
+        if sys.stdin.isatty():
+            input("Press Enter when the backend is ready with WARDEN_LLM set...")
+        else:
+            print("(non-interactive run — continuing automatically)")
         print("=" * 58)
 
         high_drift_def = TEST_COMMITS[1]  # HIGH_DRIFT
 
         for j in JUSTIFICATIONS:
             print(f"\n  [{j['id']}] {j['category']} — {j['text'][:50]}…")
+
+            # Poll /drift to advance state machine — allows RESOLVED → CLEAR
+            # transition in the backend when previous iteration's revert drops
+            # drift below threshold. Safe to call before the commit.
+            for _ in range(2):
+                try:
+                    requests.get(f"{self.backend_url}/drift", timeout=5)
+                    time.sleep(1)
+                except Exception:
+                    pass
 
             # Make HIGH_DRIFT commit to trigger gate
             try:
@@ -295,9 +308,16 @@ class ResearchTestRunner:
                 })
                 continue
 
-            time.sleep(3)
+            # Poll /drift to let the backend read the new high-drift commit
+            # and transition CLEAR → TRIGGERED
+            for _ in range(3):
+                try:
+                    requests.get(f"{self.backend_url}/drift", timeout=5)
+                    time.sleep(1)
+                except Exception:
+                    pass
 
-            # Poll gate status
+            # Verify gate is now active
             gate_active = False
             for attempt in range(2):
                 try:

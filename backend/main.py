@@ -251,7 +251,12 @@ def _compute_drift() -> tuple[float, str]:
     if gate == "PENDING":
         return score, "GATE_PENDING"
     if gate == "RESOLVED":
-        return min(score, DRIFT_THRESHOLD * 0.45), "RESOLVING"
+        if not DEMO_MODE and score <= DRIFT_THRESHOLD:
+            # Production: gate re-arms after drift drops back below threshold
+            _demo_state["gate_status"] = "CLEAR"
+            gate = "CLEAR"
+        else:
+            return min(score, DRIFT_THRESHOLD * 0.45), "RESOLVING"
     if score > DRIFT_THRESHOLD:
         return score, "CRITICAL_DRIFT"
     if score >= DRIFT_THRESHOLD * 0.55:
