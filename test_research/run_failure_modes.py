@@ -847,11 +847,30 @@ def fm_silent_nine_justifications() -> dict:
     baseline_sha = git_head_sha()
     results = []
 
+    # Spec-aligned vocabulary → drift well below threshold → reliably fires RESOLVED→CLEAR
+    LOW_DRIFT_CONTENT = (
+        "# Warden Engine governance alignment — spec-approved vocabulary only\n"
+        "SPEC_ALIGNED = True\n"
+        "WARDEN_GATE = 'active'\n"
+        "BEDROCK_MODEL = 'amazon.nova-pro-v1:0'\n"
+        "AUDIT_TRAIL = 'DynamoDB'\n"
+        "UVICORN_HOST = 'localhost'\n"
+    )
+
     try:
         for category, jid, justification in NINE_JUSTIFICATIONS:
             log(f"\n  [{jid}] {category} — '{justification[:60]}'")
 
-            # Allow RESOLVED→CLEAR from prior iteration (low drift after revert)
+            # Step 1: low-drift commit so the backend sees spec-aligned diff
+            # This ensures RESOLVED→CLEAR fires regardless of what the baseline commit's
+            # diff scored. The isolated backend reads the REAL repo diff each /drift call.
+            make_test_commit(
+                f"fm_silent_nine_{jid}_low.py",
+                LOW_DRIFT_CONTENT,
+                f"test: Finding1 iteration {jid} LOW_DRIFT (spec-aligned pre-step)"
+            )
+
+            # Poll /drift 2× — low-drift diff triggers RESOLVED→CLEAR if gate was RESOLVED
             for _ in range(2):
                 try:
                     requests.get(f"{alt_url}/drift", timeout=5)
@@ -859,15 +878,15 @@ def fm_silent_nine_justifications() -> dict:
                 except Exception:
                     pass
 
-            # Make HIGH_DRIFT commit so gate triggers
+            # Step 2: HIGH_DRIFT commit — gate should trigger from CLEAR state
             make_test_commit(
-                f"fm_silent_nine_{jid}.py",
+                f"fm_silent_nine_{jid}_high.py",
                 ("blockchain distributed consensus ethereum decentralised merkle "
                  "ledger immutable smart_contract nft_tokenisation kafka_producer"),
                 f"test: Finding1 iteration {jid} HIGH_DRIFT"
             )
 
-            # Poll /drift to advance CLEAR → TRIGGERED on isolated backend
+            # Poll /drift 3× to advance CLEAR → TRIGGERED on isolated backend
             for _ in range(3):
                 try:
                     requests.get(f"{alt_url}/drift", timeout=5)
@@ -894,7 +913,7 @@ def fm_silent_nine_justifications() -> dict:
                 revert_commits_to(baseline_sha)
                 continue
 
-            # Submit justification — LLM call will fail (invalid key)
+            # Submit justification — LLM call will fail (invalid key → score 0 REJECTED)
             try:
                 r = requests.post(
                     f"{alt_url}/gate/submit",
@@ -912,7 +931,7 @@ def fm_silent_nine_justifications() -> dict:
                 log(f"    Request error: {exc}")
                 results.append((category, jid, "ERROR", "ERROR", "N/A"))
 
-            # Revert so drift drops below threshold → next poll fires RESOLVED→CLEAR
+            # Revert all test commits — gate is now RESOLVED, next LOW_DRIFT step resets it
             revert_commits_to(baseline_sha)
             time.sleep(1)
 
