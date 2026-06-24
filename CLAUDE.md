@@ -500,6 +500,47 @@ Finding 2 expected-results block to the README (4-commit bifurcation table).
 | Gap 7 | Warden Engine Unavailability | CONFIRMED | Art. 9(2c) |
 | Finding 1/Gap11 | QMS Silent Failure — All 9 Justifications | CONFIRMED | Art. 17(1g) |
 
+### IEEE manuscript draft — `manuscript_draft.md` (commit `566e4d7`)
+
+Created `manuscript_draft.md` in the repo root. Full IEEE-format manuscript for
+Professor Eldh covering all 12 findings across EU AI Act Articles 9, 12, 13, 14, 17,
+and 50.
+
+**File:** `manuscript_draft.md` (root of repo)
+**Manuscript ID:** AEVOXIS-WE-MS-2026-001
+**Watermark:** Visible copyright header (HTML comment + rendered text) + footer.
+Unauthorized reproduction notice included. Do not remove without author instruction.
+
+**Structure:**
+- Abstract (~300 words), Index Terms
+- I. Introduction — gap, 4 numbered contributions
+- II. Background — EU AI Act articles, spec drift, HITL, LLM-as-judge, reproducibility
+- III. System Under Test — architecture, spec vault, drift formula, gate state machine
+- IV. Methodology — 4 RQs (RQ1–RQ4), Mistral selection rationale, reproducibility measures
+- V. Results — all 12 findings, Tables I–IV with all empirical numbers
+- VI. Discussion — 3 systemic patterns, W2 keyword bypass, multi-LLM comparison future work
+- VII. Threats to Validity — internal, external, construct, conclusion
+- VIII. Conclusion
+- Acknowledgements — AI drafting disclosure (research is original; Claude assisted drafting)
+- References — 15 IEEE-format numbered citations [1]–[15]
+
+**Mistral rationale (as written in §IV-C):** European provenance (French company, aligns
+with EU data sovereignty), mid-size model realistic for production compliance systems,
+versioned alias `mistral-small-2506` (not floating `latest`), `temperature=0` for
+determinism, OpenAI-compatible REST (no proprietary SDK), accessible free trial tier.
+
+**Multi-LLM comparison** noted in §VI-D as planned future work.
+
+**AI disclosure** in Acknowledgements: manuscript drafting by Claude (Anthropic); all
+research design, test execution, data, findings, interpretations, and conclusions are
+the original work of Vinita Silaparasetty.
+
+**Key citation:** Reference [13] (Wang & Yu, EUROCRYPT 2005, MD5 collision breaks) is
+cited to support the FM10/Gap 10 finding on the MD5/bcrypt error.
+
+**Do not commit API keys to this file.** The manuscript references the Mistral API but
+contains no credentials.
+
 ---
 
 ## Known Issues / Watch Points
