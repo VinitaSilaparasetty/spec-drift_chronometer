@@ -134,7 +134,21 @@ The gate operates as an in-memory state machine with four states: `CLEAR → TRI
 
 ### E. Warden LLM Integration
 
-When the `WARDEN_LLM` environment variable is set, justification evaluation is routed to a real LLM via `_warden_llm_analyze()`. The function supports three backends: `gemini`, `huggingface`, and `mistral`. All three use the same prompt template and return the same response shape: `{"approved": bool, "score": int, "reasoning": str, "model": str}`. If the LLM call raises an exception (including authentication errors), the exception is caught by `except Exception as exc:`, the error string is embedded in the reasoning trace, and a `score: 0, approved: False` response is returned — the failure point examined in FM11 and Finding 1/Gap 11.
+When the `WARDEN_LLM` environment variable is set, justification evaluation is routed to a real LLM via `_warden_llm_analyze()`. The system supports three configurable backends:
+
+**Table V. Supported LLM Backends for Justification Evaluation**
+
+| `WARDEN_LLM` | Model | API Endpoint |
+|---|---|---|
+| `mistral` | `mistral-small-2506` | `api.mistral.ai` |
+| `gemini` | `gemini-1.5-flash` | Google AI Studio |
+| `huggingface` | `meta-llama/Llama-3.1-8B-Instruct:auto` | `router.huggingface.co` |
+
+When `WARDEN_LLM` is unset, the system uses Amazon Nova Pro via AWS Bedrock in production mode (`DEMO_MODE=false`) and a built-in mock evaluator in demonstration mode (`DEMO_MODE=true`).
+
+All three real LLM backends share the same prompt template and return the same response shape: `{"approved": bool, "score": int, "reasoning": str, "model": str}`. If the LLM call raises an exception (including authentication errors), the exception is caught by `except Exception as exc:`, the error string is embedded in the reasoning trace, and a `score: 0, approved: False` response is returned — the failure point examined in FM11 and Finding 1/Gap 11.
+
+All empirical data in this paper was collected using `WARDEN_LLM=mistral` with `mistral-small-2506` and `temperature=0`. Section IV-C explains the rationale for this selection.
 
 ### F. Audit Trail
 
@@ -155,7 +169,7 @@ This study addresses four research questions:
 
 ### B. Test Suite Design
 
-We designed a two-component test suite. The first component (`test_research/run_failure_modes.py`) implements eleven targeted failure mode tests, each addressing a specific compliance hypothesis. The second component (`test_research/run_tests.py`) implements a three-phase general evaluation: drift bifurcation measurement (Phase 1), nine-level justification quality assessment (Phase 2), and audit trail generation (Phase 3).
+We designed a two-component test suite. The first component (`test_research/run_failure_modes.py`) implements twelve targeted failure mode and gap tests, each addressing a specific compliance hypothesis. The second component (`test_research/run_tests.py`) implements a three-phase general evaluation: drift bifurcation measurement (Phase 1), nine-level justification quality assessment (Phase 2), and audit trail generation (Phase 3).
 
 Each failure mode test is self-contained: it establishes a fresh system state (restarting the backend where necessary), executes a specific code change scenario via real git commits, and captures the system's quantitative response. All git commits created during testing are reverted automatically via `git reset --hard`. The entire test suite was executed from a freshly cloned repository following the public README instructions verbatim, with no local configuration beyond a Mistral API key.
 
@@ -163,16 +177,18 @@ Tests that require invalid LLM credentials spawn isolated secondary backend proc
 
 ### C. LLM Selection Rationale
 
-The Mistral API (`mistral-small-2506`, accessed via `api.mistral.ai`) was selected for justification evaluation on the following grounds:
+The system supports three real LLM backends (Table V). All three were available during this study. `mistral-small-2506` via the Mistral API was selected for all empirical data collection for the following reasons:
 
 1. **European provenance.** Mistral AI is a French AI company headquartered in Paris. Using a European AI provider for EU AI Act compliance research reflects the data sovereignty principles embedded in the Act itself, particularly the Frankfurt (`eu-central-1`) deployment requirement in the system's specification documents.
-2. **Production-realistic model scale.** The `mistral-small` series represents mid-size deployed models — the realistic choice for production compliance systems that operate at scale and must balance evaluation quality against latency and cost. Compliance evaluation systems are unlikely to rely exclusively on frontier-scale models.
-3. **Versioned, auditable model identifier.** `mistral-small-2506` is a specific versioned alias that does not change behaviour between API calls, unlike floating tags such as `latest`. This is a prerequisite for deterministic research reproducibility [2].
+2. **Production-realistic model scale.** The `mistral-small` series represents mid-size deployed models — the realistic choice for production compliance systems that must balance evaluation quality against latency and cost. Compliance gate evaluation does not require frontier-scale models, and research findings obtained on appropriately-scaled models generalise better to likely deployment conditions.
+3. **Versioned, auditable model identifier.** `mistral-small-2506` is a specific versioned alias that does not silently change behaviour between API calls, unlike floating tags such as `latest`. Pinning a versioned alias is a prerequisite for deterministic research reproducibility [2].
 4. **Deterministic configuration.** Setting `temperature=0` eliminates sampling randomness, ensuring identical inputs produce identical outputs within the same model version. This makes seven of the twelve findings fully deterministic for independent reproduction.
-5. **OpenAI-compatible REST interface.** The Mistral API requires no proprietary SDK. The test suite and backend use standard `requests.post()` calls, minimising infrastructure dependencies and reducing barriers to external reproduction.
-6. **Accessible free trial tier.** The Mistral API provides trial credits sufficient for this test suite at no cost, reducing barriers for independent academic reproduction.
+5. **OpenAI-compatible REST interface.** The Mistral API uses a standard REST interface requiring no proprietary SDK. The test suite and backend use `requests.post()` directly, minimising infrastructure dependencies and reducing barriers to external reproduction.
+6. **Accessible free trial tier.** The Mistral API provides trial credits sufficient for the full test suite, removing cost as a barrier to independent academic reproduction.
 
-Multi-LLM comparison studies — evaluating whether these findings are model-specific or systemic across providers — are planned as future work.
+The two alternative backends were considered and not selected for the following specific reasons. The HuggingFace Inference Router (`router.huggingface.co`) requires a paid Pro account; free-tier credentials return authentication errors, making it unsuitable as the primary backend for a reproducibility-focused study. The Gemini backend (`gemini-1.5-flash` via Google AI Studio) does not expose a versioned model alias in the same way — `gemini-1.5-flash` may receive silent capability updates — which undermines the pinning guarantee required for deterministic results.
+
+Multi-LLM comparison studies — repeating the full test suite against all three backends to assess which findings are model-specific and which are architectural — are planned as future work.
 
 ### D. Reproducibility Measures
 
