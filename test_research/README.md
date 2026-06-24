@@ -77,7 +77,7 @@ Results are written to `results/raw_results_mistral.txt` and
 | FM4 | CONFIRMED | Drift score identical before and after gate submissions |
 | FM5 | CONFIRMED | Sub-threshold commit produces zero audit trail entry |
 | FM6 | CONFIRMED | No commit SHAs appear in audit trail |
-| FM10 | MITIGATED | Mistral catches MD5/bcrypt error — score ~10/100, REJECTED |
+| FM10 | MITIGATED | Mistral catches MD5/bcrypt error — score ~20/100, REJECTED |
 | FM11 | CONFIRMED | Invalid key → HTTP 200 REJECTED with error buried in reasoning trace |
 | FM12 | PARTIAL | No X-AI-Used header; model field present in JSON body only |
 

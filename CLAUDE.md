@@ -300,13 +300,19 @@ Key findings:
   `{"detail":"Unauthorized"}` buried in `reasoning_trace`. Two silent failure paths:
   (1) invalid LLM key caught by `except Exception` at `main.py:545`,
   (2) boto3 unavailable also returns HTTP 200 REJECTED silently.
-- **FM10 MITIGATED** — Mistral caught the MD5/bcrypt factual error (score 10/100).
+- **FM1 CONFIRMED** — score 40/100 REJECTED; gate evaluated text quality only, no identity/role check.
+- **FM10 MITIGATED** — Mistral caught the MD5/bcrypt factual error (score 20/100).
   But this is a conditional mitigation: the gate prompt asks for "justification
   adequacy" not "technical accuracy". Mitigation depends on LLM training coverage.
 - **FM4 CONFIRMED** — drift score identical before (0.0126) and after (0.0126) two
   gate submissions. Spec vault never updated by gate decisions.
 
 All test commits were reverted after each test. Results committed in `b69474a`.
+
+Note: FM1 score was 5/100 with `mistral-small-2412` and 40/100 with `mistral-small-2506`.
+FM10 score was 10/100 with 2412 and 20/100 with 2506. Verdicts (CONFIRMED / MITIGATED)
+are identical across both models. `mistral-small-2412` was deprecated 2026-06; the
+pinned model was updated to `mistral-small-2506` in commit `b467c89`.
 
 ### test_research/.gitignore — results unblocked
 Removed `results/` from `test_research/.gitignore` (commented it out with note)
