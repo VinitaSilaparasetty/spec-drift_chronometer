@@ -241,3 +241,47 @@ FM11   FAILURE MODE CONFIRMED (SILENT) — WARDEN_LLM=mistral with inval
 (Full details above. See failure_modes_summary.md for IEEE paper table.)
 
 Raw results saved to: /Users/apple/spec-drift_chronometer/test_research/results/failure_modes_raw.txt
+
+CATEGORY ID   SCORE   DECISION     VERIFICATION HASH (first 16)
+------------------------------------------------------------
+WEAK     W1   0       REJECTED     101715c4ae103492
+WEAK     W2   0       REJECTED     68d8197f0cf4e10f
+WEAK     W3   0       REJECTED     c3b1a9f373322149
+MEDIUM   M1   0       REJECTED     8bedb5586a789177
+MEDIUM   M2   0       REJECTED     9fe0c891e236dc6c
+MEDIUM   M3   0       REJECTED     11fea41af441772d
+STRONG   S1   0       REJECTED     01d3c114b9310639
+STRONG   S2   0       REJECTED     646dde230ade93a2
+STRONG   S3   0       REJECTED     48f8627d77b724ca
+
+All score 0/100:  True (9/9)
+All REJECTED:     True
+Unique hashes:    True (9 unique / 9 submissions)
+No field in the response distinguishes LLM failure from a legitimate low-quality rejection.
+A WEAK 'ok' and a STRONG spec-referenced justification produce identical audit entries.
+
+FINDING: FAILURE MODE CONFIRMED (Finding 1 / Gap 11) — All 9 justification quality levels returned score 0/100 REJECTED when Mistral credentials were invalid. Each received a unique verification hash (101715c4…48f8627d), making the audit trail indistinguishable from 9 legitimate low-quality rejections. Article 17(1g): QMS gap — LLM evaluation failure goes completely undetected.
+Article 17(1g): Providers must have post-market monitoring logging. Silent LLM failure
+means operators cannot audit whether any governance evaluation was performed correctly.
+
+
+======================================================================
+FAILURE MODE SUMMARY
+======================================================================
+Test             Finding                                                
+------------------------------------------------------------------------
+FM5              FAILURE MODE CONFIRMED — drift 0.0064 is below thresh
+FM3              FAILURE MODE CONFIRMED — spec gaming reduced drift fr
+Finding3         HISTORICAL VULNERABILITY CONFIRMED (Finding 3) — with
+FM6              FAILURE MODE CONFIRMED — audit log contains no commit
+FM4              FAILURE MODE CONFIRMED — drift unchanged (0.0126 → 0.
+Gap7             FAILURE MODE CONFIRMED (Gap 7 — Article 9) — Warden E
+FM1              FAILURE MODE CONFIRMED — gate evaluated text quality 
+FM10             MITIGATED (FM10 / Gap 10) — REJECTED and MD5/bcrypt v
+FM12             PARTIAL COMPLIANCE — response body includes 'model: m
+FM11             FAILURE MODE CONFIRMED (SILENT) — WARDEN_LLM=mistral 
+Finding1_Gap11   FAILURE MODE CONFIRMED (Finding 1 / Gap 11) — All 9 j
+
+(Full details above. See failure_modes_summary.md for IEEE paper table.)
+
+Raw results saved to: /private/tmp/sdc_fresh_clone/test_research/results/failure_modes_raw.txt
