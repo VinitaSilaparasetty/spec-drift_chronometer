@@ -406,6 +406,72 @@ approval-signalling keyword alone can bypass the justification quality gate.
 Behaviour is fully deterministic (`temperature=0`). Documented in
 `raw_results_mistral.txt` and `test_research/README.md`.
 
+### Final end-to-end fresh-clone verification — 2026-06-24 (commits 830a431, 8397c35, c478b46)
+
+Completed the definitive fresh-clone test: `git clone` → `pip install` → backend start
+→ `run_failure_modes.py` → `run_tests.py`, following README verbatim. Both test suites
+pass end-to-end with `mistral-small-2506` (temperature=0).
+
+**New tests added to `run_failure_modes.py` for paper findings:**
+
+**Finding 3 — New File Governance Blindspot (`fm_new_file_governance_blindspot()`):**
+- Commits a new file (blockchain/DeFi vocabulary) and computes the diff both
+  with and without `--diff-filter=M`
+- With filter: 0 tokens visible → score ~0.001 (baseline, gate not triggered)
+- Without filter (current): 48 tokens visible → score 0.0132 (gate triggered)
+- Proves the historical vulnerability and the current fix empirically
+- Committed in `830a431`
+
+**Gap 7 — Warden Engine Unavailability (`gap7_warden_engine_unavailability()`):**
+- Kills backend process, makes HIGH_DRIFT commit, confirms no governance record
+- Restarts backend for subsequent tests
+- Finding: CONFIRMED — governance failure is itself unlogged (Article 9(2c))
+- Committed in `830a431`
+
+**FM10 / Gap 10 — Updated justification with professional formatting:**
+- Original justification: simple "MD5 is stronger than bcrypt" claim
+- New Gap 10 justification: adds ticket SEC-444, named reviewers (Security team +
+  Architecture board), approval dates, specific performance metric (60% overhead
+  reduction), deployment context (AWS Lambda eu-central-1)
+- `mistral-small-2506` still detects the cryptographic error: score 30/100 REJECTED
+- Professional formatting raised score 20→30 but did not change the MITIGATED verdict
+- Committed in `830a431`
+
+**Finding 1 / Gap 11 — Silent failure across all 9 quality levels (`fm_silent_nine_justifications()`):**
+- Isolated backend on port 8002 with `MISTRAL_API_KEY=INVALID_KEY_SILENT_NINE_FM_TEST`
+- Submits all 9 justifications (WEAK/MEDIUM/STRONG) with LLM credentials invalid
+- Each iteration: LOW_DRIFT pre-commit (spec-aligned vocab) → RESOLVED→CLEAR fires →
+  HIGH_DRIFT commit → CLEAR→TRIGGERED → submit → score 0 REJECTED → revert
+- Result: 9/9 score 0/100 REJECTED, 9 unique verification hashes, audit trail
+  indistinguishable from 9 legitimate low-quality rejections
+- Committed in `830a431`, fix for RESOLVED→CLEAR in `8397c35`
+
+**Root cause of RESOLVED→CLEAR fix (commit `8397c35`):**
+The Finding 1 test failed initially because the baseline commit (commit `830a431` itself,
+which modified `run_failure_modes.py`) scored above threshold — the test file content
+contains blockchain vocabulary strings. After W1's submission (gate→RESOLVED), the
+hard-reset to baseline_sha left the backend reading the baseline commit's diff
+(>threshold), preventing RESOLVED→CLEAR. Fix: add a LOW_DRIFT pre-commit (spec-aligned
+vocabulary: Warden, Bedrock, DynamoDB, Uvicorn) before each HIGH_DRIFT commit. The
+spec-aligned diff reliably drops below threshold, firing RESOLVED→CLEAR.
+
+**Finding 2 — Drift bifurcation already produced by run_tests.py Phase 1:**
+Phase 1 output from fresh clone run:
+```
+[LOW_DRIFT]      local=0.500000  backend=0.0026  agree=NO — delta: 0.4974
+[HIGH_DRIFT]     local=0.789474  backend=0.0103  agree=NO — delta: 0.7792
+[SPEC_VIOLATION] local=0.842105  backend=0.0140  agree=NO — delta: 0.8281
+[NEUTRAL]        local=0.833333  backend=0.0012  agree=NO — delta: 0.8321
+```
+0/4 agreement. Local scorer (token-overlap, 0.0–1.0 scale) and backend scorer
+(production linear formula, 0.001–0.014 scale) are systematically different. This
+is Finding 2 for the paper. Output in `results/drift_results_mistral.md`.
+
+**FM1 score note:** FM1 scored 40–45/100 across runs with the same temperature=0 key.
+Variance arises from gate context (prior submissions in the test session shift Mistral's
+calibration). The verdict (CONFIRMED) and structural finding (no identity check) are
+invariant. Both values are documented; paper uses 40/100 as the lower bound.
+
 ---
 
 ## Known Issues / Watch Points
