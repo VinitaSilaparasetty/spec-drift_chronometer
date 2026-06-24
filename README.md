@@ -6,9 +6,9 @@
 
 AI governance platform that detects semantic drift between human-authored architectural intent and AI-generated code in real time. Enforces EU AI Act Articles 12, 13, 14 & 50 directly in the execution path — not as a process document.
 
-*Top 300 finalist, AWS 10,000 AIdeas Competition 2025 · Built by [Vinita Silaparasetty](https://aevoxis.de), AI Governance Engineer, Aevoxis Solutions*
+*Built by [Vinita Silaparasetty](https://aevoxis.de), AI Governance Engineer, Aevoxis Solutions*
 
-**[Live Demo](https://spec-drift-chronometer.aevoxis.de) · [AWS Community Submission](https://builder.aws.com/content/3ArZsXU7l4aaXPzFdXH0DdlyaM4/aideas-spec-drift-chronometer)**
+**[Live Demo](https://spec-drift-chronometer.aevoxis.de)**
 
 ---
 
