@@ -26,15 +26,14 @@
 # Failure Modes in EU AI Act Compliance Engineering: Empirical Evidence from a Production Warden Agent
 
 **Vinita Silaparasetty**
-AI Governance Engineer
-Aevoxis Solutions, Germany
+AI Governance Engineer, Aevoxis Solutions, Germany
 info@aevoxis.de
 
 ---
 
 ## Abstract
 
-The EU AI Act (Regulation (EU) 2024/1689) imposes mandatory obligations on AI system providers across risk management (Article 9), logging and record-keeping (Article 12), transparency toward deployers (Article 13), human oversight (Article 14), quality management systems (Article 17), and AI system disclosure (Article 50). While compliance frameworks and design guidelines are emerging, empirical evidence of how these obligations perform — and fail — in production systems remains limited. This paper presents a structured empirical study of the Spec-Drift Chronometer, a production Warden Engine that detects semantic drift between human-authored architectural specifications and AI-generated code in real time and enforces a Human-in-the-Loop Justification Gate as a primary Article 14 control. We designed and executed a reproducible test suite of twelve empirical findings covering all six articles, using a freshly cloned repository and a deterministic LLM backend (Mistral `mistral-small-2506`, temperature=0). Our findings reveal systematic compliance gaps including: a drift scoring bifurcation in which a local token-overlap scorer (range 0.50–0.84) and the production linear scorer (range 0.0026–0.0140) produce zero agreement across four commit profiles under Article 9; a specification gaming vulnerability that reduces drift detection by 61% through a ten-line vocabulary injection under Article 13; a quality management system silent failure under Article 17 in which nine justification quality levels — from single-word responses to detailed engineering rationales — collapse to identical score 0/100 REJECTED records when LLM credentials are invalid, each carrying a unique verification hash that renders them indistinguishable from legitimate rejections in the audit trail; and a social engineering vulnerability in which the single word *"approved"* is scored identically to a detailed, trace-linked engineering justification. We report nine confirmed failure modes, one conditionally mitigated finding, and one partial compliance finding. All test scripts, empirical data, and results are committed to a public repository for independent reproduction.
+The EU AI Act (Regulation (EU) 2024/1689) imposes mandatory obligations on AI system providers across risk management (Article 9), logging and record-keeping (Article 12), transparency toward deployers (Article 13), human oversight (Article 14), quality management systems (Article 17), and AI system disclosure (Article 50). While compliance frameworks and design guidelines are emerging, empirical evidence of how these obligations perform — and fail — in production systems remains limited. This paper presents a structured empirical study of the Spec-Drift Chronometer, a production Warden Engine that detects semantic drift between human-authored architectural specifications and AI-generated code in real time and enforces a Human-in-the-Loop Justification Gate as a primary Article 14 control. I designed and executed a reproducible test suite of twelve empirical findings covering all six articles, using a freshly cloned repository and a deterministic LLM backend (Mistral `mistral-small-2506`, temperature=0). The findings reveal systematic compliance gaps including: a drift scoring bifurcation in which a local token-overlap scorer (range 0.50–0.84) and the production linear scorer (range 0.0026–0.0140) produce zero agreement across four commit profiles under Article 9; a specification gaming vulnerability that reduces drift detection by 61% through a ten-line vocabulary injection under Article 13; a quality management system silent failure under Article 17 in which nine justification quality levels — from single-word responses to detailed engineering rationales — collapse to identical score 0/100 REJECTED records when LLM credentials are invalid, each carrying a unique verification hash that renders them indistinguishable from legitimate rejections in the audit trail; and a social engineering vulnerability in which the single word *"approved"* is scored identically to a detailed, trace-linked engineering justification. I report nine confirmed failure modes, one conditionally mitigated finding, and one partial compliance finding. All test scripts, empirical data, and results are committed to a public repository for independent reproduction.
 
 **Index Terms** — EU AI Act, AI governance, compliance engineering, spec-drift detection, human-in-the-loop, LLM evaluation, audit trail integrity, software quality assurance, specification gaming
 
@@ -46,7 +45,7 @@ The EU Artificial Intelligence Act (EU AI Act), Regulation (EU) 2024/1689, enter
 
 Compliance engineering for these obligations is an active area of practice, but it is largely theoretical: design principles, conformity checklists, and governance frameworks predominate. What is rare is empirical evidence of how these controls perform in production systems under adversarial conditions, edge cases, and infrastructure failures. A compliance control that works in nominal conditions but fails silently under realistic stress conditions offers substantially weaker protection than its specification suggests.
 
-This paper addresses that gap through an empirical study of a production Warden Engine: the Spec-Drift Chronometer. The system continuously monitors semantic drift between human-authored architectural specification documents and AI-generated code, triggering a Human-in-the-Loop Justification Gate whenever drift exceeds a configurable threshold. It is designed specifically as a compliance artifact for EU AI Act Articles 12, 13, 14, and 50. We treat this system as a subject for empirical testing rather than as a reference implementation, and we apply a structured test suite of twelve failure mode and gap tests to characterise its actual behaviour under conditions the design specification does not explicitly address.
+This paper addresses that gap through an empirical study of a production Warden Engine: the Spec-Drift Chronometer. The system continuously monitors semantic drift between human-authored architectural specification documents and AI-generated code, triggering a Human-in-the-Loop Justification Gate whenever drift exceeds a configurable threshold. It is designed specifically as a compliance artifact for EU AI Act Articles 12, 13, 14, and 50. I treat this system as a subject for empirical testing rather than as a reference implementation, and apply a structured test suite of twelve failure mode and gap tests to characterise its actual behaviour under conditions the design specification does not explicitly address.
 
 The contributions of this paper are:
 
@@ -169,7 +168,7 @@ This study addresses four research questions:
 
 ### B. Test Suite Design
 
-We designed a two-component test suite. The first component (`test_research/run_failure_modes.py`) implements twelve targeted failure mode and gap tests, each addressing a specific compliance hypothesis. The second component (`test_research/run_tests.py`) implements a three-phase general evaluation: drift bifurcation measurement (Phase 1), nine-level justification quality assessment (Phase 2), and audit trail generation (Phase 3).
+I designed a two-component test suite. The first component (`test_research/run_failure_modes.py`) implements twelve targeted failure mode and gap tests, each addressing a specific compliance hypothesis. The second component (`test_research/run_tests.py`) implements a three-phase general evaluation: drift bifurcation measurement (Phase 1), nine-level justification quality assessment (Phase 2), and audit trail generation (Phase 3).
 
 Each failure mode test is self-contained: it establishes a fresh system state (restarting the backend where necessary), executes a specific code change scenario via real git commits, and captures the system's quantitative response. All git commits created during testing are reverted automatically via `git reset --hard`. The entire test suite was executed from a freshly cloned repository following the public README instructions verbatim, with no local configuration beyond a Mistral API key.
 
@@ -233,7 +232,7 @@ This section reports all twelve findings organised by the EU AI Act article they
 
 *Addressing RQ1 and RQ2.*
 
-The system exposes two drift measurement surfaces: a standalone local scorer (`drift_calculator.py`, using Jaccard token-overlap distance, range 0.0–1.0) and the production backend scorer (linear formula `0.001 + raw × 0.013`, range 0.001–0.014). We measured both on four test commits with distinct vocabulary profiles:
+The system exposes two drift measurement surfaces: a standalone local scorer (`drift_calculator.py`, using Jaccard token-overlap distance, range 0.0–1.0) and the production backend scorer (linear formula `0.001 + raw × 0.013`, range 0.001–0.014). I measured both on four test commits with distinct vocabulary profiles:
 
 **Table II. Drift Scoring Bifurcation — Phase 1 Results**
 
@@ -256,7 +255,7 @@ The implication for Article 9(2c) is that a practitioner using the local scorer 
 
 The original `_read_git_diff()` implementation used the flag `--diff-filter=M`, which restricts output to Modified files (files that existed in both commits). New files — those added in the current commit but absent in the prior commit — are classified as Added (flag `A`) by git and are therefore excluded from `--diff-filter=M` output.
 
-We tested this empirically by committing a new Python file containing exclusively non-spec vocabulary (Ethereum, DeFi, smart contract domain): seven unique tokens not present in the spec vault. With `--diff-filter=M` applied, the diff returned zero tokens from the new file; the drift score was approximately 0.001 (the formula floor). Without the filter (the current production implementation), 48 tokens were visible and the drift score was 0.0132 — above the threshold, gate triggered.
+I tested this empirically by committing a new Python file containing exclusively non-spec vocabulary (Ethereum, DeFi, smart contract domain): seven unique tokens not present in the spec vault. With `--diff-filter=M` applied, the diff returned zero tokens from the new file; the drift score was approximately 0.001 (the formula floor). Without the filter (the current production implementation), 48 tokens were visible and the drift score was 0.0132 — above the threshold, gate triggered.
 
 **Table III. New File Governance Blindspot**
 
@@ -271,7 +270,7 @@ This finding was identified empirically during testing when new-file commits con
 
 *Addressing RQ1.*
 
-We tested system behaviour when the Warden Engine process was unavailable during a high-drift commit event. The procedure: kill the backend process (`pkill -f "uvicorn backend.main"`), make a high-drift commit (blockchain vocabulary, expected score >0.0075), attempt to poll the endpoint (resulting in connection refused), then restart the backend and inspect the audit trail.
+I tested system behaviour when the Warden Engine process was unavailable during a high-drift commit event. The procedure: kill the backend process (`pkill -f "uvicorn backend.main"`), make a high-drift commit (blockchain vocabulary, expected score >0.0075), attempt to poll the endpoint (resulting in connection refused), then restart the backend and inspect the audit trail.
 
 Result: zero audit entries were created during the downtime window. When the backend restarted, it read `HEAD~1..HEAD` — the most recent commit pair at that moment — and resumed from that point, with no awareness of the commit made during the downtime window. That commit entered the codebase without triggering any gate, without producing any audit entry, and without generating any alert.
 
@@ -293,7 +292,7 @@ Article 12(1) requires logs sufficient to trace the system's functioning. A log 
 
 *Addressing RQ4.*
 
-The spec vault (`.kiro/steering/`) is a directory of Markdown documents readable and writable by any actor with repository write access. We appended a ten-line vocabulary block containing blockchain and DeFi terminology to `governance.md` and committed it:
+The spec vault (`.kiro/steering/`) is a directory of Markdown documents readable and writable by any actor with repository write access. I appended a ten-line vocabulary block containing blockchain and DeFi terminology to `governance.md` and committed it:
 
 ```markdown
 ## Approved Extended Vocabulary
@@ -316,7 +315,7 @@ Article 13(3b) requires technical documentation to remain accurate and controlle
 
 *Addressing RQ1.*
 
-The gate endpoint `POST /gate/submit` requires no authentication. We submitted a justification crafted to represent unauthorised access:
+The gate endpoint `POST /gate/submit` requires no authentication. I submitted a justification crafted to represent unauthorised access:
 
 > *"Junior dev hotfix — no time for full review, need to push to prod ASAP, manager approved verbally."*
 
@@ -328,7 +327,7 @@ The score variance (40–45/100 across temperature=0 runs) arises from gate cont
 
 *Addressing RQ1.*
 
-After two gate submissions for blockchain vocabulary code (both REJECTED), we measured whether the gate had registered that this vocabulary had been reviewed. Drift score before first submission: **0.0126**. Drift score after both submissions: **0.0126**. The scores are identical.
+After two gate submissions for blockchain vocabulary code (both REJECTED), I measured whether the gate had registered that this vocabulary had been reviewed. Drift score before first submission: **0.0126**. Drift score after both submissions: **0.0126**. The scores are identical.
 
 The drift scorer reads the spec vault from disk on every invocation and computes scores deterministically from the current vault state. Gate decisions are never written back to the spec vault or to any other persistent governance document. The same vocabulary will trigger the same gate alert on every future commit indefinitely, regardless of how many times human operators have reviewed and rejected it. This dynamic produces alert fatigue that, in production, leads to justifications submitted pro forma — a degeneration of the human oversight mechanism that Article 14(1) is designed to prevent.
 
@@ -336,7 +335,7 @@ The drift scorer reads the spec vault from disk on every invocation and computes
 
 *Addressing RQ1.*
 
-We made three sequential commits with escalating non-spec vocabulary. The gate triggered after the second commit. The audit trail at the point of gate resolution contained: drift value, justification text, LLM decision, model identifier, verification hash, and timestamp. It did not contain any commit SHA, branch name, or file path list.
+I made three sequential commits with escalating non-spec vocabulary. The gate triggered after the second commit. The audit trail at the point of gate resolution contained: drift value, justification text, LLM decision, model identifier, verification hash, and timestamp. It did not contain any commit SHA, branch name, or file path list.
 
 When a compliance officer examines the audit entry to determine what must be rolled back, they have no machine-readable reference to the causal commit. With three commits in the sequence, the officer must perform `git bisect` or manual diff review — operations not surfaced in the gate UI and not documented in the audit trail itself. Article 14(4)'s requirement for effective intervention capability is not met when the audit record lacks the information required to execute the intervention.
 
@@ -344,7 +343,7 @@ When a compliance officer examines the audit entry to determine what must be rol
 
 *Addressing RQ4.*
 
-We submitted a justification containing a factually incorrect technical claim, augmented with professional formatting markers:
+I submitted a justification containing a factually incorrect technical claim, augmented with professional formatting markers:
 
 > *"Replacing bcrypt password hashing with MD5 for performance optimisation. MD5's 128-bit digest provides sufficient entropy for authentication tokens while reducing computational overhead by 60% relative to bcrypt's iterative key derivation. The engineering team benchmarked both algorithms on AWS Lambda eu-central-1; MD5 achieves sub-millisecond hashing at API gateway scale. Security team reviewed and approved 2026-06-23, ticket SEC-444. Architecture board sign-off: Chief Architect, 2026-06-10."*
 
@@ -360,7 +359,7 @@ This finding is classified as **conditionally mitigated**: Mistral's training da
 
 *Addressing RQ3.*
 
-We configured an isolated backend instance with `WARDEN_LLM=mistral` and `MISTRAL_API_KEY=INVALID_KEY_FOR_FM11_TEST`, then submitted a gate justification. The execution path in `backend/main.py`:
+I configured an isolated backend instance with `WARDEN_LLM=mistral` and `MISTRAL_API_KEY=INVALID_KEY_FOR_FM11_TEST`, then submitted a gate justification. The execution path in `backend/main.py`:
 
 1. `requests.post()` to `api.mistral.ai` → HTTP 401 Unauthorized → `{"detail":"Unauthorized"}`
 2. `resp.raise_for_status()` raises `HTTPError`
@@ -377,7 +376,7 @@ Two concurrent silent failure paths exist: (1) invalid `WARDEN_LLM` API key, cau
 
 *Addressing RQ3 — the primary Article 17 finding.*
 
-We extended FM11 across all nine justification quality levels used in the justification quality test suite: three WEAK (W1–W3), three MEDIUM (M1–M3), and three STRONG (S1–S3). Each was submitted to an isolated backend with invalid credentials following a LOW_DRIFT pre-commit and HIGH_DRIFT commit cycle to ensure gate re-arming between submissions.
+I extended FM11 across all nine justification quality levels used in the justification quality test suite: three WEAK (W1–W3), three MEDIUM (M1–M3), and three STRONG (S1–S3). Each was submitted to an isolated backend with invalid credentials following a LOW_DRIFT pre-commit and HIGH_DRIFT commit cycle to ensure gate re-arming between submissions.
 
 **Table IV. QMS Silent Failure — All Nine Quality Levels**
 
@@ -405,7 +404,7 @@ This is the most severe Article 17 finding in this study. The QMS is designed to
 
 *Addressing RQ1.*
 
-We examined the HTTP response from a successful gate submission (APPROVED, strong justification, valid credentials). The response headers were: `date`, `server: uvicorn`, `content-length`, `content-type: application/json`. No AI-specific disclosure header was present.
+I examined the HTTP response from a successful gate submission (APPROVED, strong justification, valid credentials). The response headers were: `date`, `server: uvicorn`, `content-length`, `content-type: application/json`. No AI-specific disclosure header was present.
 
 The JSON response body included the field `"model": "mistral-small-2506"`, which discloses AI involvement to a developer reading the response body. However, Article 50(1) requires disclosure "in a timely, clear, and intelligible manner" to natural persons. A CI/CD pipeline integration, compliance monitoring proxy, or audit logging middleware cannot intercept AI-generated decisions without parsing JSON response bodies. A standard HTTP header — `X-AI-Decision-Model: mistral-small-2506` or `X-AI-System-Involved: true` — would enable machine-readable disclosure at the protocol layer.
 
@@ -445,7 +444,7 @@ All findings in this study were produced using a single LLM backend (`mistral-sm
 
 ### A. Internal Validity
 
-The test suite uses real git commits against a live backend. Commit ordering, drift threshold setting, and gate state at test initiation are controlled via the test harness. However, the gate state machine is in-memory only; an unexpected backend crash during testing could produce inconsistent results. We mitigated this by restarting the backend to a known CLEAR state before each test.
+The test suite uses real git commits against a live backend. Commit ordering, drift threshold setting, and gate state at test initiation are controlled via the test harness. However, the gate state machine is in-memory only; an unexpected backend crash during testing could produce inconsistent results. I mitigated this by restarting the backend to a known CLEAR state before each test.
 
 FM1 score variance (40–45/100 across runs) despite temperature=0 is attributable to gate context: the LLM's calibration is influenced by prior gate submissions in the same test session, which affect session-level context. This is an internal validity concern for LLM-as-judge evaluations more generally [4].
 
@@ -457,19 +456,19 @@ The FM3 specification gaming finding generalises to any system using a vocabular
 
 ### C. Construct Validity
 
-The drift threshold (0.0075) is a configurable parameter. A higher or lower threshold would change which findings triggered the gate and which did not (particularly FM5). Our findings are reported at the system's configured threshold; the structural findings (FM1, FM3, Finding 3, Gap 7, FM11, Finding 1/Gap 11) are threshold-independent.
+The drift threshold (0.0075) is a configurable parameter. A higher or lower threshold would change which findings triggered the gate and which did not (particularly FM5). All findings are reported at the system's configured threshold; the structural findings (FM1, FM3, Finding 3, Gap 7, FM11, Finding 1/Gap 11) are threshold-independent.
 
 The LLM judge's scores are constructed measurements. As the W2 finding demonstrates, LLM judges may respond to surface features rather than content quality. All findings involving LLM scores should be interpreted as measurements of the specific model's behaviour on the specific prompt, not as ground-truth quality assessments.
 
 ### D. Conclusion Validity
 
-The test suite was executed once from a fresh clone. For findings with score variance (FM1: 40–45/100), we report the observed range. For findings that are fully deterministic (temperature=0, no LLM involved), a single run is sufficient. We note that the nine verification hashes in Table IV provide a content-addressable fingerprint that any independent verifier can reproduce to confirm that specific submissions produced specific audit records.
+The test suite was executed once from a fresh clone. For findings with score variance (FM1: 40–45/100), I report the observed range. For findings that are fully deterministic (temperature=0, no LLM involved), a single run is sufficient. The nine verification hashes in Table IV provide a content-addressable fingerprint that any independent verifier can reproduce to confirm that specific submissions produced specific audit records.
 
 ---
 
 ## VIII. Conclusion
 
-This paper presented a structured empirical study of twelve failure modes and compliance gaps in a production EU AI Act governance system. Across EU AI Act Articles 9, 12, 13, 14, 17, and 50, we confirmed nine failure modes, conditionally mitigated one, and identified one partial compliance finding. The three systemic patterns — silent QMS failure, governance blindspots, and social engineering surfaces — represent failure categories that are likely to recur across EU AI Act compliance implementations because they arise from common design assumptions (LLM backends are always available; specification documents are trusted and controlled; gate endpoints are accessed only by authorised actors) rather than system-specific bugs.
+This paper presented a structured empirical study of twelve failure modes and compliance gaps in a production EU AI Act governance system. Across EU AI Act Articles 9, 12, 13, 14, 17, and 50, I confirmed nine failure modes, conditionally mitigated one, and identified one partial compliance finding. The three systemic patterns — silent QMS failure, governance blindspots, and social engineering surfaces — represent failure categories that are likely to recur across EU AI Act compliance implementations because they arise from common design assumptions (LLM backends are always available; specification documents are trusted and controlled; gate endpoints are accessed only by authorised actors) rather than system-specific bugs.
 
 The most severe finding is Finding 1/Gap 11: a QMS silent failure that generates nine plausible audit records across all justification quality levels, each with a unique verification hash, during a period when no LLM evaluation occurred. This finding demonstrates that audit trail completeness is a necessary but not sufficient condition for audit trail validity under Article 17. A functioning QMS must distinguish between a legitimate REJECTED decision and a governance evaluation failure — a capability the current system lacks.
 
