@@ -3,6 +3,10 @@ Failure Mode Test Suite for IEEE Software Paper
 Aevoxis Warden Engine — Spec-Drift Chronometer
 
 Tests FM1, FM3, FM4, FM5, FM6, FM10, FM11, FM12
++ Finding 1/Gap 11 (silent failure across all 9 justification quality levels)
++ Finding 3 (new file governance blindspot — --diff-filter=M historical vulnerability)
++ Gap 7 (Article 9 risk management continuity — Warden Engine unavailability)
++ Gap 10 (Article 14(4) competence — sophisticated wrong justification with ticket ref)
 Each test is isolated and cleans up after itself.
 
 Usage:
@@ -28,6 +32,27 @@ args = parser.parse_args()
 
 BASE_URL = args.backend_url.rstrip("/")
 RAW_OUT = RESULTS_DIR / "failure_modes_raw.txt"
+
+# Nine justification quality levels — same set used in run_tests.py Phase 2
+NINE_JUSTIFICATIONS = [
+    ("WEAK",   "W1", "ok"),
+    ("WEAK",   "W2", "approved"),
+    ("WEAK",   "W3", "I updated the code"),
+    ("MEDIUM", "M1", "Changing the function to improve performance"),
+    ("MEDIUM", "M2", "Updated the model configuration for better results"),
+    ("MEDIUM", "M3", "Refactored this section as part of cleanup work"),
+    ("STRONG", "S1",
+     "Migrating authentication layer from SHA-256 to bcrypt to align with OWASP "
+     "security recommendations for password hashing. Reviewed by lead engineer "
+     "on 2026-06-23, ticket SEC-441. Spec updated to reflect bcrypt as approved."),
+    ("STRONG", "S2",
+     "Replacing synchronous database write with async pattern to comply with EARS "
+     "requirement INTENT-003 which mandates non-blocking DB operations. Architecture "
+     "review board approved 2026-06-20, ticket ARCH-289."),
+    ("STRONG", "S3",
+     "Adding OAuth2 integration to satisfy GDPR Article 7 compliance requirement "
+     "identified in legal review dated 2026-06-15. Planned in spec under product.md."),
+]
 
 # ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -393,22 +418,115 @@ def fm6_rollback_target_ambiguity() -> dict:
             "sha_in_audit": sha_in_audit, "finding": finding}
 
 
+def fm_new_file_governance_blindspot() -> dict:
+    log("\n" + "=" * 70)
+    log("Finding 3 — New File Governance Blindspot (--diff-filter=M Historical Vulnerability)")
+    log("=" * 70)
+    log("Hypothesis: The original _read_git_diff() used --diff-filter=M (Modified files only).")
+    log("New file additions were completely invisible to drift detection — score ~0.0012 baseline.")
+    log("Fix: removing --diff-filter=M allows new file vocabulary to be scored correctly.")
+    log("This test shows the current (fixed) behaviour and the simulated pre-fix baseline.\n")
+
+    baseline_sha = git_head_sha()
+
+    # A new file with pure non-spec vocabulary (blockchain/DeFi domain)
+    new_file_content = (
+        "# Ethereum DeFi integration\n"
+        "def process_defi_liquidation(ethereum_node, defi_protocol, smart_contract,\n"
+        "                             nft_tokenisation, websocket_rpc, merkle_root):\n"
+        "    '''Subscribe to Ethereum DeFi liquidation events via WebSocket RPC.'''\n"
+        "    kafka_producer = KafkaProducer(ethereum_node)\n"
+        "    return kafka_producer.publish(defi_protocol, smart_contract)\n"
+    )
+    make_test_commit("fm_new_file_blindspot.py", new_file_content,
+                     "test: Finding3 new file with blockchain/DeFi vocabulary (non-spec domain)")
+
+    # Current backend (no --diff-filter=M) — should detect the new file
+    d = get_drift()
+    score_current = d.get("drift_score", d.get("current_drift", "N/A"))
+    log(f"Current backend (no --diff-filter=M): drift score = {score_current}")
+
+    # Simulate what the ORIGINAL code saw with --diff-filter=M
+    diff_with_filter = subprocess.run(
+        ["git", "diff", "HEAD~1", "HEAD", "--diff-filter=M", "--unified=3", "--no-color",
+         "--", "*.py", "*.ts", "*.tsx"],
+        capture_output=True, text=True, cwd=str(REPO_ROOT)
+    ).stdout.strip()
+
+    diff_without_filter = subprocess.run(
+        ["git", "diff", "HEAD~1", "HEAD", "--unified=3", "--no-color",
+         "--", "*.py", "*.ts", "*.tsx"],
+        capture_output=True, text=True, cwd=str(REPO_ROOT)
+    ).stdout.strip()
+
+    tokens_with_filter    = len(diff_with_filter.split())    if diff_with_filter    else 0
+    tokens_without_filter = len(diff_without_filter.split()) if diff_without_filter else 0
+
+    # Score the original code would have produced (empty diff → baseline 0.001)
+    score_simulated_filter = 0.001 if tokens_with_filter == 0 else "non-zero (partial file)"
+
+    log(f"\nWith --diff-filter=M (original code): {tokens_with_filter} tokens visible to scorer")
+    log(f"  Simulated score: {score_simulated_filter}  "
+        f"({'new file completely invisible' if tokens_with_filter == 0 else 'partially visible'})")
+    log(f"\nWithout --diff-filter=M (current code): {tokens_without_filter} tokens visible")
+    log(f"  Actual score: {score_current}")
+
+    revert_commits_to(baseline_sha)
+
+    try:
+        score_f = float(score_current)
+        threshold = 0.0075
+        if score_f > threshold and tokens_with_filter == 0:
+            finding = (
+                f"HISTORICAL VULNERABILITY CONFIRMED (Finding 3) — with --diff-filter=M the "
+                f"new-file commit produced 0 tokens visible to the scorer (score ~0.001, well below "
+                f"threshold {threshold}). Current backend (filter removed) correctly detects the "
+                f"same commit at drift score {score_f}. Any vocabulary introduced exclusively "
+                f"through new file additions was systematically invisible. Fix: remove --diff-filter=M "
+                f"from _read_git_diff() in backend/main.py."
+            )
+        elif score_f <= threshold:
+            finding = (
+                f"TEST SETUP ISSUE — current score {score_f} is at or below threshold. "
+                f"New file vocabulary may overlap with spec vault. Check new_file_content."
+            )
+        else:
+            finding = (
+                f"PARTIAL — current score {score_f}, filter tokens {tokens_with_filter}. "
+                f"New file partially visible even with filter (not a pure Addition-only commit)."
+            )
+    except (TypeError, ValueError):
+        finding = f"INCONCLUSIVE — score: {score_current}, filter tokens: {tokens_with_filter}"
+
+    log(f"\nFINDING: {finding}")
+    log("Article 9(2c): Risk management must systematically identify all known risk patterns.")
+    log("New file additions are a core change type — excluding them from drift scoring is an")
+    log("architectural risk not detected by any test or review gate.")
+    return {"fm": "Finding3", "score_no_filter": score_current,
+            "tokens_with_filter": tokens_with_filter,
+            "score_simulated_filter": score_simulated_filter, "finding": finding}
+
+
 def fm10_competence_verification_gap() -> dict:
     log("\n" + "=" * 70)
-    log("FM10 — Article 14(4) Competence Verification Gap")
+    log("FM10 / Gap 10 — Article 14(4) Competence Verification Gap")
     log("=" * 70)
-    log("Hypothesis: The gate cannot detect factually wrong technical claims.")
-    log("A confident-sounding but incorrect justification may be APPROVED.\n")
+    log("Hypothesis: The gate cannot detect factually wrong technical claims even when")
+    log("the justification uses professional formatting: ticket number, named reviewers,")
+    log("specific metrics, and approval dates. Article 14(4): 'natural persons must have")
+    log("necessary competence' — gate scores writing quality, not technical accuracy.\n")
 
-    j = ("The change replaces bcrypt password hashing with MD5 for performance. "
-         "MD5 provides stronger security guarantees than bcrypt because it uses "
-         "a 128-bit digest which is cryptographically superior to bcrypt's "
-         "Blowfish cipher. The faster hash computation reduces authentication "
-         "latency and improves user experience without compromising security. "
-         "This aligns with the tech.md requirement for Python 3.12 runtime "
-         "and optimised Bedrock AgentCore integration.")
-    log(f"Justification: '{j[:100]}...'")
-    log("\nKey factual error: MD5 is cryptographically broken; bcrypt is the secure choice.")
+    j = ("Replacing bcrypt password hashing with MD5 for performance optimisation. "
+         "MD5's 128-bit digest provides sufficient entropy for authentication tokens "
+         "while reducing computational overhead by 60% relative to bcrypt's iterative "
+         "key derivation. The engineering team benchmarked both algorithms on AWS Lambda "
+         "eu-central-1; MD5 achieves sub-millisecond hashing at API gateway scale. "
+         "Security team reviewed and approved 2026-06-23, ticket SEC-444. "
+         "Architecture board sign-off: Chief Architect, 2026-06-10.")
+    log(f"Justification: '{j[:120]}...'")
+    log("\nKey factual errors: MD5 is cryptographically broken (collision attacks known since 1996);")
+    log("bcrypt's iterative key derivation is a feature, not a bug — it resists brute-force attacks.")
+    log("The justification uses professional formatting (ticket, dates, metrics) to appear legitimate.")
 
     result = post_gate(j, drift_value=0.0095)
     decision = result.get("decision", "UNKNOWN")
@@ -423,22 +541,111 @@ def fm10_competence_verification_gap() -> dict:
                           "wrong", "inaccurate", "false", "vulnerability"])
 
     if decision == "APPROVED":
-        finding = ("FAILURE MODE CONFIRMED — technically incorrect justification APPROVED. "
-                   f"Score: {score}/100. LLM evaluated narrative plausibility, not technical accuracy.")
+        finding = ("FAILURE MODE CONFIRMED (FM10 / Gap 10) — technically incorrect justification "
+                   f"APPROVED despite professional formatting with ticket SEC-444 and named reviewers. "
+                   f"Score: {score}/100. LLM scored governance narrative quality, not cryptographic accuracy. "
+                   "MD5/bcrypt vulnerability undetected.")
     elif decision == "REJECTED" and not detected_error:
-        finding = ("PARTIAL — REJECTED but not because of the MD5/bcrypt error. "
-                   f"Score: {score}/100. Rejection may be for other reasons (e.g., insufficient detail).")
+        finding = ("PARTIAL (FM10 / Gap 10) — REJECTED but MD5/bcrypt error not cited in reasoning. "
+                   f"Score: {score}/100. Rejection driven by other factors. "
+                   "A different phrasing of the same factual error may succeed.")
     elif decision == "REJECTED" and detected_error:
-        finding = ("MITIGATED — REJECTED and MD5/bcrypt error detected in reasoning. "
-                   f"Score: {score}/100. LLM caught the technical flaw.")
+        finding = ("MITIGATED (FM10 / Gap 10) — REJECTED and MD5/bcrypt vulnerability detected. "
+                   f"Score: {score}/100. LLM caught the cryptographic flaw despite professional formatting. "
+                   "Mitigation is model-dependent — coverage of MD5/bcrypt is well-known in training data.")
     else:
         finding = f"INCONCLUSIVE — decision={decision}, detected_error={detected_error}"
 
     log(f"\nFINDING: {finding}")
-    log("Article 14(4): Gate must verify technical competence of the change.")
-    log("An LLM scoring governance text quality cannot validate cryptographic claims.")
+    log("Article 14(4): 'Natural persons to whom the AI system is assigned must have necessary")
+    log("competence.' The gate evaluates justification text quality, not the underlying technical")
+    log("claim. A cryptographically illiterate engineer with good writing skills passes unchanged.")
     return {"fm": "FM10", "decision": decision, "score": score,
             "error_detected": detected_error, "finding": finding}
+
+
+def gap7_warden_engine_unavailability() -> dict:
+    log("\n" + "=" * 70)
+    log("Gap 7 — Article 9 Risk Management Continuity (Warden Engine Unavailability)")
+    log("=" * 70)
+    log("Hypothesis: When the Warden Engine is stopped, a drift event that would normally")
+    log("trigger the gate leaves no record anywhere. Article 9(2c): risk management must")
+    log("be continuous and documented. Engine failure is itself a governance-invisible event.\n")
+
+    baseline_sha = git_head_sha()
+    audit_before = get_audit_tail(5)
+
+    # Kill the main backend — simulate Warden Engine crash / maintenance window
+    log("Stopping Warden Engine (simulating crash / deployment window)...")
+    subprocess.run(["pkill", "-f", "uvicorn backend.main:app.*8000"], capture_output=True)
+    time.sleep(2)
+
+    # Make a HIGH_DRIFT commit while the engine is down
+    log("Making high-drift commit while Warden Engine is unavailable...")
+    make_test_commit(
+        "gap7_engine_down.py",
+        ("blockchain distributed consensus ethereum decentralised merkle ledger "
+         "nft_tokenisation smart_contract websocket_rpc defi_protocol kafka_producer"),
+        "test: Gap7 high-drift commit made while Warden Engine was unavailable"
+    )
+
+    # Verify engine is unreachable
+    drift_accessible = False
+    try:
+        r = requests.get(f"{BASE_URL}/drift", timeout=5)
+        drift_accessible = (r.status_code == 200)
+        log(f"Backend still responds (unexpected): HTTP {r.status_code}")
+    except Exception as e:
+        log(f"Backend unreachable (expected — engine stopped): {type(e).__name__}")
+
+    # Audit trail check — no new entry should exist during downtime
+    audit_after = get_audit_tail(5)
+    new_audit_entry = (audit_after != audit_before)
+    log(f"\nAudit file changed during engine downtime: {new_audit_entry}")
+    if not new_audit_entry:
+        log("  -> Drift event during engine unavailability left NO governance record.")
+        log("  -> There is no alert, no queued event, no retry — the gap is silent.")
+
+    revert_commits_to(baseline_sha)
+
+    # Restart backend so subsequent tests continue (caller's WARDEN_LLM section will re-kill/restart)
+    log("\nRestarting backend for subsequent tests...")
+    subprocess.run(["pkill", "-f", "uvicorn backend.main:app.*8000"], capture_output=True)
+    time.sleep(1)
+    mistral_key = os.environ.get("MISTRAL_API_KEY", "")
+    env = {**os.environ, "DEMO_MODE": "false"}
+    if mistral_key:
+        env["WARDEN_LLM"] = "mistral"
+    subprocess.Popen(
+        ["python", "-m", "uvicorn", "backend.main:app",
+         "--host", "0.0.0.0", "--port", "8000"],
+        cwd=str(REPO_ROOT), env=env,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    )
+    time.sleep(4)
+    log("Backend restarted.")
+
+    if not drift_accessible and not new_audit_entry:
+        finding = (
+            "FAILURE MODE CONFIRMED (Gap 7 — Article 9) — Warden Engine unavailability "
+            "produces zero governance record. A high-drift commit made during engine downtime "
+            "triggers no gate, no audit entry, and no alert. The governance system failure is "
+            "itself unlogged. Article 9(2c): risk management must be continuous. No continuity "
+            "mechanism exists — any crash or maintenance window silently disables governance."
+        )
+    elif drift_accessible:
+        finding = ("TEST SETUP ISSUE — backend process still reachable after pkill. "
+                   "Check whether another backend instance is running on a different PID.")
+    else:
+        finding = (f"PARTIAL — engine was down (drift_accessible={drift_accessible}), "
+                   f"audit_changed={new_audit_entry}.")
+
+    log(f"\nFINDING: {finding}")
+    log("Article 9(2c): Risks 'arising from possible malfunctioning of the AI system itself'")
+    log("must be addressed in the risk management system. Engine unavailability is precisely")
+    log("this risk — and it is currently unmitigated.")
+    return {"fm": "Gap7", "drift_accessible": drift_accessible,
+            "audit_changed": new_audit_entry, "finding": finding}
 
 
 def restart_main_backend():
@@ -617,6 +824,141 @@ def fm12_article50_disclosure_gap() -> dict:
         return {"fm": "FM12", "finding": finding}
 
 
+def fm_silent_nine_justifications() -> dict:
+    log("\n" + "=" * 70)
+    log("Finding 1 / Gap 11 — Quality Management Silent Failure (All 9 Justifications)")
+    log("=" * 70)
+    log("Hypothesis: When WARDEN_LLM=mistral is configured but credentials are invalid,")
+    log("ALL nine justification quality levels (WEAK/MEDIUM/STRONG) return score 0/100")
+    log("REJECTED — indistinguishable from a legitimate rejection. Each submission still")
+    log("receives a unique verification hash, so the audit trail appears intact.")
+    log("Article 17(1g): QMS must detect and report governance evaluation failures.\n")
+
+    log("Starting isolated backend on port 8002 with invalid Mistral credentials...")
+    subprocess.run(["pkill", "-f", "uvicorn backend.main:app.*8002"], capture_output=True)
+    time.sleep(1)
+    proc = _start_temp_backend({
+        "DEMO_MODE": "false",
+        "WARDEN_LLM": "mistral",
+        "MISTRAL_API_KEY": "INVALID_KEY_SILENT_NINE_FM_TEST",
+    }, port=8002)
+
+    alt_url = "http://localhost:8002"
+    baseline_sha = git_head_sha()
+    results = []
+
+    try:
+        for category, jid, justification in NINE_JUSTIFICATIONS:
+            log(f"\n  [{jid}] {category} — '{justification[:60]}'")
+
+            # Allow RESOLVED→CLEAR from prior iteration (low drift after revert)
+            for _ in range(2):
+                try:
+                    requests.get(f"{alt_url}/drift", timeout=5)
+                    time.sleep(1)
+                except Exception:
+                    pass
+
+            # Make HIGH_DRIFT commit so gate triggers
+            make_test_commit(
+                f"fm_silent_nine_{jid}.py",
+                ("blockchain distributed consensus ethereum decentralised merkle "
+                 "ledger immutable smart_contract nft_tokenisation kafka_producer"),
+                f"test: Finding1 iteration {jid} HIGH_DRIFT"
+            )
+
+            # Poll /drift to advance CLEAR → TRIGGERED on isolated backend
+            for _ in range(3):
+                try:
+                    requests.get(f"{alt_url}/drift", timeout=5)
+                    time.sleep(1)
+                except Exception:
+                    pass
+
+            # Verify gate is active
+            gate_active = False
+            for attempt in range(2):
+                try:
+                    gs = requests.get(f"{alt_url}/gate/status", timeout=5).json()
+                    if gs.get("status") in ("TRIGGERED", "PENDING"):
+                        gate_active = True
+                        break
+                except Exception:
+                    pass
+                if attempt == 0:
+                    time.sleep(2)
+
+            if not gate_active:
+                log(f"    Gate did not trigger — skipping {jid}")
+                results.append((category, jid, "GATE_NOT_TRIGGERED", "N/A", "N/A"))
+                revert_commits_to(baseline_sha)
+                continue
+
+            # Submit justification — LLM call will fail (invalid key)
+            try:
+                r = requests.post(
+                    f"{alt_url}/gate/submit",
+                    json={"justification": justification, "drift_value": 0.0095},
+                    timeout=30,
+                )
+                body = r.json() if r.status_code == 200 else {}
+                score    = body.get("score", "N/A")
+                decision = body.get("decision", "N/A")
+                vh       = body.get("verification_hash", "N/A")
+                log(f"    HTTP {r.status_code} → score={score}  decision={decision}  "
+                    f"hash={str(vh)[:16]}")
+                results.append((category, jid, score, decision, vh))
+            except Exception as exc:
+                log(f"    Request error: {exc}")
+                results.append((category, jid, "ERROR", "ERROR", "N/A"))
+
+            # Revert so drift drops below threshold → next poll fires RESOLVED→CLEAR
+            revert_commits_to(baseline_sha)
+            time.sleep(1)
+
+    finally:
+        proc.terminate()
+        proc.wait(timeout=5)
+        log("\nIsolated backend on port 8002 stopped.")
+        revert_commits_to(baseline_sha)
+
+    # Analysis
+    valid = [(c, j, s, d, h) for c, j, s, d, h in results
+             if s not in ("GATE_NOT_TRIGGERED", "ERROR")]
+    all_zero     = all(s == 0 for _, _, s, _, _ in valid) if valid else False
+    all_rejected = all(d == "REJECTED" for _, _, _, d, _ in valid) if valid else False
+    hashes       = [h for _, _, _, _, h in valid if h not in ("N/A", None)]
+    unique_hashes = len(set(hashes)) == len(hashes) and len(hashes) > 0
+
+    log(f"\n{'CATEGORY':<8} {'ID':<4} {'SCORE':<7} {'DECISION':<12} VERIFICATION HASH (first 16)")
+    log("-" * 60)
+    for cat, jid, score, decision, vh in results:
+        log(f"{cat:<8} {jid:<4} {str(score):<7} {str(decision):<12} {str(vh)[:16]}")
+
+    log(f"\nAll score 0/100:  {all_zero} ({sum(1 for _,_,s,_,_ in valid if s == 0)}/{len(valid)})")
+    log(f"All REJECTED:     {all_rejected}")
+    log(f"Unique hashes:    {unique_hashes} ({len(set(hashes))} unique / {len(hashes)} submissions)")
+    log("No field in the response distinguishes LLM failure from a legitimate low-quality rejection.")
+    log("A WEAK 'ok' and a STRONG spec-referenced justification produce identical audit entries.")
+
+    if all_zero and all_rejected and unique_hashes:
+        finding = (
+            f"FAILURE MODE CONFIRMED (Finding 1 / Gap 11) — All {len(valid)} justification quality "
+            f"levels returned score 0/100 REJECTED when Mistral credentials were invalid. "
+            f"Each received a unique verification hash ({hashes[0][:8]}…{hashes[-1][:8]}), making "
+            f"the audit trail indistinguishable from {len(valid)} legitimate low-quality rejections. "
+            f"Article 17(1g): QMS gap — LLM evaluation failure goes completely undetected."
+        )
+    else:
+        finding = f"INCONCLUSIVE — valid={len(valid)}, all_zero={all_zero}, all_rejected={all_rejected}"
+
+    log(f"\nFINDING: {finding}")
+    log("Article 17(1g): Providers must have post-market monitoring logging. Silent LLM failure")
+    log("means operators cannot audit whether any governance evaluation was performed correctly.")
+    return {"fm": "Finding1_Gap11", "submitted": len(valid), "all_zero": all_zero,
+            "all_rejected": all_rejected, "unique_hashes": unique_hashes, "finding": finding}
+
+
 # ─── main ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -641,14 +983,18 @@ def main():
     # FM5 first: needs gate CLEAR (the function restarts backend itself)
     results.append(fm5_near_miss_logging_gap())
 
-    # FM3, FM6 next: drift measurement — gate may be TRIGGERED but scores still accurate
+    # FM3, Finding 3, FM6 next: drift measurement — gate may be TRIGGERED but scores accurate
     results.append(fm3_specification_gaming())
+    results.append(fm_new_file_governance_blindspot())   # Finding 3: --diff-filter=M blindspot
     results.append(fm6_rollback_target_ambiguity())
 
-    # FM4: vocab expansion — gate submit tests
+    # FM4: vocab expansion — gate submit tests (restarts backend at start)
     results.append(fm4_vocabulary_expansion())
 
-    # Restart with WARDEN_LLM=mistral if key is available, for FM1/FM10/FM12
+    # Gap 7: Warden Engine unavailability — kills backend, restarts it at end
+    results.append(gap7_warden_engine_unavailability())
+
+    # Restart with WARDEN_LLM=mistral for FM1/FM10/FM12/Finding1 (always restart for clean state)
     mistral_key = os.environ.get("MISTRAL_API_KEY", "")
     if mistral_key:
         log("\nRestarting backend with WARDEN_LLM=mistral for gate evaluation tests...")
@@ -664,26 +1010,38 @@ def main():
         time.sleep(4)
         log("Backend restarted with real LLM evaluation.")
     else:
-        log("\nMISTRAL_API_KEY not in env — gate tests will use fallback Bedrock path.")
+        log("\nMISTRAL_API_KEY not in env — restarting backend without LLM for gate tests...")
         log("(FM1 and FM10 findings still valid — no LLM = no competence check at all)")
+        subprocess.run(["pkill", "-f", "uvicorn backend.main:app.*8000"], capture_output=True)
+        time.sleep(2)
+        subprocess.Popen(
+            ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"],
+            cwd=str(REPO_ROOT),
+            env={**os.environ, "DEMO_MODE": "false"},
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        time.sleep(4)
 
-    # FM1, FM10, FM12: direct gate tests (gate state irrelevant)
+    # FM1, FM10/Gap10, FM12: direct gate tests (gate state irrelevant)
     results.append(fm1_authorisation_mismatch())
-    results.append(fm10_competence_verification_gap())
+    results.append(fm10_competence_verification_gap())   # Gap 10: sophisticated wrong justification
     results.append(fm12_article50_disclosure_gap())
 
-    # FM11 last: isolated backend with invalid key (spawns its own process)
+    # FM11: isolated backend with invalid key (1 submission)
     results.append(fm11_silent_failure())
+
+    # Finding 1/Gap 11: isolated backend, ALL 9 justification quality levels with invalid key
+    results.append(fm_silent_nine_justifications())
 
     # ── Summary table ──────────────────────────────────────────────────────────
     log("\n\n" + "=" * 70)
     log("FAILURE MODE SUMMARY")
     log("=" * 70)
-    log(f"{'FM':<6} {'Finding':<65}")
-    log("-" * 70)
+    log(f"{'Test':<16} {'Finding':<55}")
+    log("-" * 72)
     for r in results:
-        finding_short = r["finding"][:63]
-        log(f"{r['fm']:<6} {finding_short}")
+        finding_short = r["finding"][:53]
+        log(f"{r['fm']:<16} {finding_short}")
 
     log("\n(Full details above. See failure_modes_summary.md for IEEE paper table.)")
     log(f"\nRaw results saved to: {RAW_OUT}")

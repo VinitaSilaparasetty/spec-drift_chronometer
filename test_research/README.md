@@ -26,7 +26,7 @@ source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r backend/requirements.txt -r test_research/requirements.txt
 ```
 
-### Run the failure mode tests (FM1, FM3–FM6, FM10–FM12)
+### Run the failure mode tests
 
 Open two terminals.
 
@@ -44,10 +44,10 @@ cd test_research
 MISTRAL_API_KEY=your-key python run_failure_modes.py
 ```
 
-The script takes approximately 8–10 minutes. It manages the backend internally
-(restarts it between tests that need a fresh gate state, and spawns a second
-instance on port 8001 for the FM11 invalid-credentials test). All git commits
-made during drift tests are reverted automatically.
+The script takes approximately 12–15 minutes. It manages the backend internally
+(restarts it between tests that need a fresh gate state, spawns a second instance
+on port 8001 for FM11, and a third on port 8002 for Finding 1/Gap 11). All git
+commits made during drift tests are reverted automatically.
 
 Results are written to `results/failure_modes_raw.txt` (full output) and
 `results/failure_modes_summary.md` (IEEE paper table).
@@ -70,20 +70,24 @@ Results are written to `results/raw_results_mistral.txt` and
 
 ### Failure mode tests
 
-| FM | Expected verdict | Key number |
-|----|-----------------|------------|
+| Test | Expected verdict | Key number |
+|------|-----------------|------------|
 | FM1 | CONFIRMED | No identity check on /gate/submit — any caller accepted |
 | FM3 | CONFIRMED | Drift drops from ~0.011 to ~0.004 after spec vault injection |
 | FM4 | CONFIRMED | Drift score identical before and after gate submissions |
 | FM5 | CONFIRMED | Sub-threshold commit produces zero audit trail entry |
 | FM6 | CONFIRMED | No commit SHAs appear in audit trail |
-| FM10 | MITIGATED | Mistral catches MD5/bcrypt error — score ~20/100, REJECTED |
+| FM10 / Gap 10 | MITIGATED | Mistral catches MD5/bcrypt error even with ticket SEC-444 and named reviewers — score ~20/100, REJECTED |
 | FM11 | CONFIRMED | Invalid key → HTTP 200 REJECTED with error buried in reasoning trace |
 | FM12 | PARTIAL | No X-AI-Used header; model field present in JSON body only |
+| Finding 3 | CONFIRMED | With --diff-filter=M new files produce 0 visible tokens (score ~0.001); current fix detects correctly |
+| Gap 7 | CONFIRMED | Engine crash during drift event → no governance record anywhere |
+| Finding 1 / Gap 11 | CONFIRMED | All 9 quality levels (WEAK/MEDIUM/STRONG) return score 0/100 REJECTED with invalid key, each with unique hash |
 
-FM10 depends on the LLM's training data covering the specific vulnerability being
-tested. MD5/bcrypt is well-known; the mitigation may not hold for obscure
-cryptographic errors.
+FM10/Gap 10 depends on the LLM's training data covering the specific vulnerability.
+MD5/bcrypt is well-known; the mitigation may not hold for obscure cryptographic errors.
+The Gap 10 justification now includes ticket SEC-444, named reviewers, and specific
+performance metrics to test whether professional formatting overrides error detection.
 
 ### Justification quality tests
 
@@ -121,6 +125,14 @@ and makes git commits. Both are reverted automatically via `git reset --hard`.
 If the script is interrupted during FM3, run `git status` — if governance.md
 shows as modified, run `git checkout .kiro/steering/governance.md`.
 
+**Gap 7 backend restart:** Gap 7 kills the main backend to simulate engine unavailability,
+then restarts it automatically. If the script is interrupted during Gap 7, run
+`pkill -f "uvicorn backend.main"` and restart the backend manually before re-running.
+
+**Finding 1/Gap 11 isolation:** The silent-nine test spawns an isolated backend on
+port 8002 with invalid Mistral credentials. If interrupted, run
+`pkill -f "uvicorn backend.main:app.*8002"` to clean up the stale process.
+
 **Results directory:** Running the tests overwrites `results/failure_modes_raw.txt`
 and related files. The committed results in the repository represent the exact run
 used for the paper.
@@ -142,8 +154,10 @@ port 8000, isolated on port 8001 for FM11).
 ### `run_tests.py`
 
 Three-phase test runner:
-1. **Drift measurement** — makes five test commits with different vocabulary profiles
-   and records the drift score for each
+1. **Drift measurement (Finding 2)** — makes five test commits with different vocabulary
+   profiles and records both the local token-overlap score and the backend production
+   score for each. The systematic disagreement between the two scorers (local: 0.5–0.84,
+   backend: 0.0026–0.0140) is Finding 2 in the paper. Output: `results/drift_results_mistral.md`
 2. **Justification gate** — submits nine justifications at three quality levels and
    records the LLM's score and decision for each
 3. **Audit trail** — calls POST /audit and verifies the output file
