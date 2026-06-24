@@ -341,6 +341,71 @@ A different model version may not catch it. The README documents this caveat.
 Committed in `81c2af2`. `test_research/README.md` updated to reflect pinned model
 and to replace the "±5–10 points variation" note with the determinism guarantee.
 
+### End-to-end reproduction audit — mistral-small-2412 deprecated
+
+Ran both test suites (`run_failure_modes.py` and `run_tests.py`) from a completely
+fresh `git clone` following the README instructions verbatim, as an external
+reviewer would. Found and fixed the following gaps:
+
+**Gap 1 — `mistral-small-2412` was deprecated.** The Mistral API now returns
+`HTTP 400 "Invalid model: mistral-small-2412"` for that alias. Updated the pinned
+model to `mistral-small-2506` (confirmed available via Mistral models API) across
+`backend/main.py`, `test_research/README.md`, `failure_modes_summary.md`, and
+`CLAUDE.md`. Committed in `b467c89`.
+
+**Gap 2 — FM1 and FM10 scores changed with the new model.** Verdicts unchanged,
+scores shifted: FM1 5/100 → 40/100, FM10 10/100 → 20/100. Paper table updated
+in `failure_modes_summary.md`. Committed in `414b1f3`.
+
+**Gap 3 — git user config not listed as prerequisite.** The failure mode tests
+make real git commits. Without `git config user.name` and `git config user.email`,
+commits fail silently with no error message, producing wrong or zero drift scores.
+Added to `test_research/README.md` prerequisites. Committed in `5237c39`.
+
+**Gap 4 — stray `temp_drift_test.py` file.** Deleted leftover FM3 vocabulary
+artifact from `test_research/`. Committed in `5237c39`.
+
+### Phase 2 gate re-arming fix
+
+`run_tests.py` Phase 2 was broken: after the first justification submission
+(REJECTED), the gate went to `RESOLVED` and never re-triggered for W2–S3. Root
+cause: the backend's gate trigger condition was `gate == "CLEAR"` only, and the
+test script polled `/gate/status` (read-only) rather than `/drift` (which advances
+the state machine).
+
+Two fixes committed together in `9da1e67`:
+
+1. **`backend/main.py`** — in `_compute_drift()`, added production-mode transition:
+   when `gate == "RESOLVED"` and the new drift score drops at or below threshold,
+   reset `gate_status` to `"CLEAR"` so the gate can re-arm for future high-drift
+   commits. DEMO_MODE behaviour is explicitly unchanged (`not DEMO_MODE` guard).
+
+2. **`test_research/run_tests.py`** — Phase 2 inner loop now polls `/drift` twice
+   before making the HIGH_DRIFT commit (lets RESOLVED → CLEAR fire), then polls
+   `/drift` three more times after the commit (lets CLEAR → TRIGGERED fire), before
+   checking `/gate/status`. Also added `sys.stdin.isatty()` guard so the Phase 2
+   interactive prompt auto-skips in non-interactive/scripted runs.
+
+### Justification quality test results — mistral-small-2506
+
+All 9 justifications now score correctly. Key findings vs. prior run (2412):
+
+| ID | Justification | Score (2412) | Score (2506) | Decision |
+|----|--------------|-------------|-------------|---------|
+| W1 | "ok" | 5/100 | 20/100 | REJECTED |
+| W2 | "approved" | 0/100 | **85/100** | **APPROVED** |
+| W3 | "I updated the code" | 0/100 | 30/100 | REJECTED |
+| M1–M3 | Vague sentences | 10/100 | 30/100 | REJECTED |
+| S1–S3 | Specific, traceable | 91–95/100 | 85/100 | APPROVED |
+
+**W2 is a new finding:** `mistral-small-2506` interprets the single word
+`"approved"` as a compliance signal, scoring it identically to a STRONG
+justification (85/100 APPROVED). `mistral-small-2412` correctly rejected it
+(0/100 REJECTED). This is a social engineering vulnerability — an
+approval-signalling keyword alone can bypass the justification quality gate.
+Behaviour is fully deterministic (`temperature=0`). Documented in
+`raw_results_mistral.txt` and `test_research/README.md`.
+
 ---
 
 ## Known Issues / Watch Points
