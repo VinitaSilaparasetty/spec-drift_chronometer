@@ -472,6 +472,34 @@ Variance arises from gate context (prior submissions in the test session shift M
 calibration). The verdict (CONFIRMED) and structural finding (no identity check) are
 invariant. Both values are documented; paper uses 40/100 as the lower bound.
 
+### IEEE paper table finalized — 12 findings (commit `54c9fb7`)
+
+Added Finding 2 (drift scoring bifurcation) as an explicit row in
+`test_research/results/failure_modes_summary.md`. It was documented in prose in the
+fresh-clone section above but was absent from the summary table — external reviewers
+using the table as a reference would have missed it.
+
+Also fixed FM10/Gap 10 score in `test_research/README.md` expected-results table from
+~20/100 to ~30/100 to match the SEC-444 sophisticated justification run, and added a
+Finding 2 expected-results block to the README (4-commit bifurcation table).
+
+**Final paper table state (12 findings, 9 CONFIRMED / 1 MITIGATED / 1 PARTIAL):**
+
+| ID | Title | Verdict | Article |
+|----|-------|---------|---------|
+| FM1 | Authorisation Mismatch | CONFIRMED | Art. 14(4) |
+| FM3 | Specification Gaming | CONFIRMED | Art. 13(3b) |
+| FM4 | Vocabulary Expansion Desensitisation | CONFIRMED | Art. 14(1) |
+| FM5 | Near-Miss Logging Gap | CONFIRMED | Art. 12(1) |
+| FM6 | Rollback Target Ambiguity | CONFIRMED | Art. 14(4) |
+| FM10/Gap10 | Competence Verification Gap | MITIGATED | Art. 14(4) |
+| FM11 | Article 17 Silent Failure (single) | CONFIRMED | Art. 17(1g) |
+| FM12/Gap12 | Article 50 Disclosure Gap | PARTIAL | Art. 50(1) |
+| Finding 2 | Drift Scoring Bifurcation | CONFIRMED | Art. 9(2c) |
+| Finding 3 | New File Governance Blindspot | CONFIRMED | Art. 9(2c) |
+| Gap 7 | Warden Engine Unavailability | CONFIRMED | Art. 9(2c) |
+| Finding 1/Gap11 | QMS Silent Failure — All 9 Justifications | CONFIRMED | Art. 17(1g) |
+
 ---
 
 ## Known Issues / Watch Points
