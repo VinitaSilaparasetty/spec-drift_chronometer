@@ -541,6 +541,17 @@ cited to support the FM10/Gap 10 finding on the MD5/bcrypt error.
 **Do not commit API keys to this file.** The manuscript references the Mistral API but
 contains no credentials.
 
+**Pronoun convention (commit `62fd746`):** The manuscript uses first-person singular
+throughout ("I designed", "I measured", "I confirmed", etc.). IEEE sole-author
+convention — do not revert to "we/our". Passive voice is used where it reads more
+naturally for methodology prose ("All findings are reported at...", "The nine
+verification hashes..."). No "we" or "our" remains in the body text; the string
+"WE" appears only in the watermark ID (AEVOXIS-WE-MS-2026-001), which is correct.
+
+**Author line format:** "Vinita Silaparasetty, AI Governance Engineer, Aevoxis
+Solutions, Germany" — title is part of the author block, not a separate affiliation
+line.
+
 ---
 
 ## Known Issues / Watch Points
