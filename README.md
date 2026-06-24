@@ -212,9 +212,23 @@ Downloadable directly from the dashboard. A weak justification scores 29/100 and
 The `test_research/` folder contains the empirical test suite used to generate data for an IEEE Software paper on EU AI Act compliance failure modes. It includes two test runners:
 
 - `run_tests.py` — three-phase test: real drift measurement across git commits, justification gate evaluation across nine quality levels (WEAK / MEDIUM / STRONG), and audit trail generation
-- `run_failure_modes.py` — eight structured failure mode tests covering Articles 12, 13, 14, and 17
+- `run_failure_modes.py` — twelve structured failure mode and gap tests covering Articles 9, 12, 13, 14, 17, and 50
 
 Results across all test runs are in `test_research/results/`. The headline finding from the failure mode suite: a 10-line addition to the spec vault reduced drift detection for an entire vocabulary domain from 0.0113 to 0.0044, crossing the gate threshold in reverse and silencing detection permanently — a gap not visible from reading Article 13(3b) alone.
+
+## LLM Backends for Justification Evaluation
+
+The Warden Engine supports three real LLM backends for gate evaluation, controlled by the `WARDEN_LLM` environment variable:
+
+| `WARDEN_LLM` value | Model used | API endpoint |
+|--------------------|------------|--------------|
+| `mistral` | `mistral-small-2506` | `api.mistral.ai` |
+| `gemini` | `gemini-1.5-flash` | Google AI Studio |
+| `huggingface` | `meta-llama/Llama-3.1-8B-Instruct:auto` | `router.huggingface.co` |
+
+When `WARDEN_LLM` is unset, the system uses Amazon Nova Pro via Bedrock in production mode (`DEMO_MODE=false`) and the built-in mock evaluator in demo mode (`DEMO_MODE=true`). No external API key is required for demo mode.
+
+**For IEEE paper reproducibility:** All empirical test data in `test_research/results/` was generated using `WARDEN_LLM=mistral` with model `mistral-small-2506` and `temperature=0`. The model is pinned by version alias (not `latest`) to ensure deterministic, reproducible results. See `test_research/README.md` for the full reproduction procedure.
 
 To run the justification gate tests against a live backend:
 
