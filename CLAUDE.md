@@ -500,13 +500,14 @@ Finding 2 expected-results block to the README (4-commit bifurcation table).
 | Gap 7 | Warden Engine Unavailability | CONFIRMED | Art. 9(2c) |
 | Finding 1/Gap11 | QMS Silent Failure — All 9 Justifications | CONFIRMED | Art. 17(1g) |
 
-### IEEE manuscript draft — `manuscript_draft.md` (commit `566e4d7`)
+### IEEE manuscript draft — removed from repo (commit `45a2300`)
 
 Created `manuscript_draft.md` in the repo root. Full IEEE-format manuscript for
 Professor Eldh covering all 12 findings across EU AI Act Articles 9, 12, 13, 14, 17,
 and 50.
 
-**File:** `manuscript_draft.md` (root of repo)
+**File:** `manuscript_draft.md` — removed from public repo at commit `45a2300`.
+Full draft recoverable from git history at commit `62fd746`.
 **Manuscript ID:** AEVOXIS-WE-MS-2026-001
 **Watermark:** Visible copyright header (HTML comment + rendered text) + footer.
 Unauthorized reproduction notice included. Do not remove without author instruction.
