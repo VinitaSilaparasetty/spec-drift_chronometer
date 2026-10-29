@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import json
 import time
 import hashlib
@@ -52,7 +53,14 @@ _diff_state: dict = {
     "sample_index": 0,
     "last_score": 0.0012,
     "last_diff_name": "",
+    "spec_vault_dir": None,   # None = not yet probed, "" = not found
 }
+
+# DEMO_MODE only: polls to stay in RESOLVING before the gate re-arms. The public
+# demo shares one process across visitors, so without this the first visitor to
+# resolve the gate leaves it resolved for everyone after them.
+DEMO_REARM_POLLS = int(os.environ.get("DEMO_REARM_POLLS", "10"))
+_demo_cycle: dict = {"resolving_polls": 0}
 
 # Tokens that carry no architectural signal — filtered before comparison
 _CODE_STOP = frozenset({
@@ -210,6 +218,16 @@ def _read_git_diff() -> str:
         return ""
 
 
+def _rearm_demo_gate() -> None:
+    """Return the demo to its opening state so the next visitor sees the cycle."""
+    _demo_state["gate_status"] = "CLEAR"
+    _demo_state["gate_justification"] = None
+    _demo_state["gate_decision"] = None
+    _demo_state["gate_reasoning"] = None
+    _demo_cycle["resolving_polls"] = 0
+    _diff_state["sample_index"] = 0
+
+
 def _compute_drift() -> tuple[float, str]:
     """
     Compute a genuine semantic drift score from the current diff.
@@ -228,6 +246,16 @@ def _compute_drift() -> tuple[float, str]:
     specs = _load_spec_intent()
     spec_text = " ".join(specs.values())
 
+    if not specs and not _diff_state.get("spec_vault_warned"):
+        _diff_state["spec_vault_warned"] = True
+        print(
+            "ERROR: spec vault not found. Drift cannot be assessed and every "
+            "diff will score the same. Searched: "
+            + ", ".join(_spec_vault_candidates()),
+            file=sys.stderr,
+            flush=True,
+        )
+
     score: float | None = None
     if not DEMO_MODE:
         score = _score_diff_bedrock(diff, specs)
@@ -243,6 +271,7 @@ def _compute_drift() -> tuple[float, str]:
     # Gate trigger: first time score strictly exceeds threshold
     if score > DRIFT_THRESHOLD and gate == "CLEAR":
         _demo_state["gate_status"] = "TRIGGERED"
+        _demo_cycle["resolving_polls"] = 0
         gate = "TRIGGERED"
 
     # Derive status label
@@ -256,6 +285,11 @@ def _compute_drift() -> tuple[float, str]:
             _demo_state["gate_status"] = "CLEAR"
             gate = "CLEAR"
         else:
+            if DEMO_MODE:
+                # Hold the resolved state long enough to be read, then re-arm.
+                _demo_cycle["resolving_polls"] += 1
+                if _demo_cycle["resolving_polls"] >= DEMO_REARM_POLLS:
+                    _rearm_demo_gate()
             return min(score, DRIFT_THRESHOLD * 0.45), "RESOLVING"
     if score > DRIFT_THRESHOLD:
         return score, "CRITICAL_DRIFT"
@@ -282,15 +316,55 @@ def _load_tech_md() -> str:
         return ""
 
 
+_SPEC_FILES = ["governance.md", "tech.md", "product.md", "human-intent-specs.md", "spec.json"]
+
+
+def _spec_vault_candidates() -> list:
+    """
+    Every place the spec vault may live, most specific first.
+
+    The vault is the repo-root .kiro/steering/ directory, but a deployment that
+    builds or mounts only backend/ never sees it. backend/spec_vault/ is a
+    committed mirror for exactly that case, and SPEC_VAULT_DIR overrides both.
+    """
+    candidates = []
+    env_dir = os.environ.get("SPEC_VAULT_DIR", "").strip()
+    if env_dir:
+        candidates.append(env_dir)
+    candidates.append(os.path.join(_BACKEND_DIR, "spec_vault"))
+    # Walk up from the backend directory looking for .kiro/steering.
+    here = _BACKEND_DIR
+    for _ in range(4):
+        candidates.append(os.path.join(here, ".kiro", "steering"))
+        here = os.path.dirname(here)
+    candidates.append(os.path.join(os.getcwd(), ".kiro", "steering"))
+    return candidates
+
+
 def _load_spec_intent() -> dict:
-    specs: dict = {}
-    steering_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".kiro", "steering")
-    for fname in ["governance.md", "tech.md", "product.md", "human-intent-specs.md", "spec.json"]:
-        path = os.path.join(steering_dir, fname)
-        if os.path.exists(path):
-            with open(path) as f:
-                specs[fname] = f.read()
-    return specs
+    """
+    Load the human intent specs the Warden scores every diff against.
+
+    Returns the first candidate directory that yields at least one file. An
+    empty result means drift cannot be assessed at all, which callers must
+    treat as a fault rather than as a low drift score.
+    """
+    for directory in _spec_vault_candidates():
+        specs: dict = {}
+        for fname in _SPEC_FILES:
+            path = os.path.join(directory, fname)
+            if os.path.exists(path):
+                try:
+                    with open(path) as f:
+                        specs[fname] = f.read()
+                except OSError:
+                    continue
+        if specs:
+            _diff_state["spec_vault_dir"] = directory
+            return specs
+
+    _diff_state["spec_vault_dir"] = ""
+    return {}
 
 
 def _write_dynamo_audit(record: dict) -> None:
@@ -574,6 +648,7 @@ async def get_drift():
         "threshold": DRIFT_THRESHOLD,
         "gate": _demo_state["gate_status"],
         "demo_mode": DEMO_MODE,
+        "spec_vault": "OK" if _diff_state.get("spec_vault_dir") else "UNAVAILABLE",
     }
 
 
