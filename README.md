@@ -14,11 +14,11 @@ AI governance platform that detects semantic drift between human-authored archit
 
 ![Sovereign Dashboard — Spec-Drift Chronometer](screenshots/01-dashboard.png)
 
-> Normal operating state. Drift within threshold, status SOVEREIGN, all governance indicators green.
+> Normal operating state, captured from the live demo. Feed connected, drift 0.0050 against a 0.0075 threshold, spec compliance 94%, Warden observing.
 
 ![Justification Gate Approved — Spec-Drift Chronometer](screenshots/02-justification-gate-approved.png)
 
-> Article 14 enforcement end-to-end: drift crossed threshold, human submitted justification, Warden Agent returned APPROVED with Intent Alignment Score 91/100.
+> Article 14 enforcement end-to-end: drift reached 0.0104 against the 0.0075 threshold (excess delta +0.0029), a human submitted a justification, and the Warden Agent returned APPROVED with a hash-stamped reasoning trace. Captured in DEMO_MODE.
 
 ---
 
