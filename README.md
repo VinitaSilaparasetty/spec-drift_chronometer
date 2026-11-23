@@ -1,53 +1,72 @@
-# Aevoxis Warden Engine: Spec-Drift Chronometer
+# Spec-Drift Chronometer
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
-[![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Art.%2012%2C%2013%2C%2014%2C%2050-green)](https://aevoxis.de)
+[![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Art.%2012%20%C2%B7%2014-green)](#eu-ai-act-mapping)
 
-AI governance platform that detects semantic drift between human-authored architectural intent and AI-generated code in real time. Enforces EU AI Act Articles 12, 13, 14 & 50 directly in the execution path — not as a process document.
+**An open, vendor-neutral oversight gate for AI agents.** The Chronometer measures how far an AI agent's output drifts from a written, human-defined intent. When the drift crosses a threshold, it stops execution until a person gives a justification, checks that justification instead of rubber-stamping it, and records every decision in a tamper-evident log.
 
-*Built by [Vinita Silaparasetty](https://aevoxis.de), AI Governance Engineer, Aevoxis Solutions*
-
-**[Live Demo](https://spec-drift-chronometer.aevoxis.de)**
+*Created by [Vinita Silaparasetty](https://github.com/VinitaSilaparasetty). Open source under Apache-2.0, free for anyone to use, study, adapt and run on their own infrastructure.*
 
 ---
 
-![Sovereign Dashboard — Spec-Drift Chronometer](screenshots/01-dashboard.png)
+## Why this matters
 
-> Normal operating state, captured from the live demo. Feed connected, drift 0.0050 against a 0.0075 threshold, spec compliance 94%, Warden observing.
+AI agents increasingly take part in decisions about people: job applications, benefit claims, advice, public-service chatbots. The EU AI Act asks for effective human oversight (Art. 14) and traceable records (Art. 12). In practice, oversight fails in three ways:
 
-![Justification Gate Approved — Spec-Drift Chronometer](screenshots/02-justification-gate-approved.png)
+1. **Approvals become rubber stamps.** Someone who sees many requests clicks "yes" without thinking. An approval without a reason protects nobody.
+2. **The rules themselves are unprotected.** The intent files that an agent is checked against can be edited. In my tests, adding ten lines to an intent file permanently switched off detection for a whole topic area, without anyone noticing (see [Research](#research)). Whoever can change the intent can switch off the oversight.
+3. **Oversight tools are mostly proprietary platforms.** Public authorities, municipalities, non-profits and small organisations need a free building block they can run themselves, inspect, and adapt to their own rules.
 
-> Article 14 enforcement end-to-end: drift reached 0.0104 against the 0.0075 threshold (excess delta +0.0029), a human submitted a justification, and the Warden Agent returned APPROVED with a hash-stamped reasoning trace. Captured in DEMO_MODE.
+The Chronometer is built to protect the people that AI systems make decisions about, and to give smaller organisations oversight they control.
+
+## What makes it different
+
+Drift detection and human-approval steps already exist separately. The Chronometer combines them and adds what the others leave out:
+
+| | Drift monitors | Approval gates | **Spec-Drift Chronometer** |
+|---|---|---|---|
+| Measures drift from human intent | Yes | No | **Yes** |
+| Stops execution when drift is too high | No (report only) | Fixed tool lists | **Yes, triggered by measured drift** |
+| Checks the quality of the human's justification | No | No | **Yes, weak justifications are rejected** |
+| Protects the intent files against tampering | No | No | **Planned: signed intent store** |
+| Tamper-evident decision log | Varies | Varies | **Yes (Art. 12)** |
+
+## Status
+
+**Today (working prototype).** Drift measurement, the justification gate, LLM-scored justifications (a weak justification scores 29/100 and is rejected) and a downloadable audit trail, with a demo dashboard and a LangChain/LangGraph integration.
+
+**Next (roadmap).** Turning the prototype into a lightweight Python library that runs without any cloud account:
+
+- [ ] **Signed intent store:** every intent file signed and versioned (Ed25519); changes need a valid signature and pass through the gate themselves
+- [ ] **Downgrade detector:** flags edits that lower detection for whole topic areas, the failure pattern found in the research
+- [ ] **Local, open models** for scoring justifications (for example Mistral or Llama via Ollama), swappable
+- [ ] **Hash-chained, signed decision log** for Art. 12 record-keeping
+- [ ] **Adapters** for LangChain/LangGraph callbacks, OpenTelemetry spans (GenAI conventions) and an MCP middleware
+- [ ] **Open benchmark:** the failure-mode test suite published so other oversight tools can be measured against it
+- [ ] **Release on PyPI**, with the dashboard kept optional
+
+Feedback and contributions on any of these are welcome: please open an issue.
+
+## Who it is for
+
+Developers who deploy AI agents in public administration, municipalities, non-profits, research and small organisations: for example a city's citizen chatbot, an application assistant or a consumer-advice bot. Indirectly, the people those systems decide about.
 
 ---
 
-## EU AI Act Alignment
+## Demo
 
-| Requirement | Implementation |
-|---|---|
-| Article 14: Human Oversight | Justification Gate blocks execution until human approval |
-| Article 12: Record Keeping | SHA-256-verified audit trail on every governance decision |
-| Article 13: Transparency | Real-time drift coefficient visible to all stakeholders |
-| Article 50: Disclosure | System identifies itself as AI-governed at every interaction point |
+![Dashboard showing drift below threshold](screenshots/01-dashboard.png)
 
----
+> Normal operating state: drift 0.0050 against a 0.0075 threshold, gate observing.
 
-## Features
+![Justification gate approved](screenshots/02-justification-gate-approved.png)
 
-| Feature | Description |
-|---------|-------------|
-| **Drift Detection** | Polls a live drift index every 3 seconds. Real-time bar chart coloured by severity. |
-| **Justification Gate** | When drift crosses the sovereign threshold, an Article 14-compliant gate appears. No action proceeds without human sign-off. |
-| **Warden Agent** | Submits justification to Amazon Nova Pro and returns a structured reasoning trace with an Intent Alignment Score. |
-| **Audit Trail** | Every governance event logged to `.kiro/audit/last_sync.audit` with a verification hash — downloadable from the dashboard. |
-| **Spec Vault** | Human intent specs in `.kiro/steering/`. The Warden cross-references every decision against these files. |
-
----
+> Art. 14 gate end to end: drift reached 0.0104 against the 0.0075 threshold, a human submitted a justification, and the evaluator returned APPROVED with a hash-stamped reasoning trace. Captured in DEMO_MODE.
 
 ## Quickstart
 
-**Requirements:** Python ≥ 3.12, Node.js ≥ 18, npm ≥ 9
+Requirements: Python 3.12+, Node.js 18+, npm 9+
 
 ```bash
 git clone https://github.com/VinitaSilaparasetty/spec-drift_chronometer.git
@@ -56,25 +75,24 @@ chmod +x dev.sh
 DEMO_MODE=true ./dev.sh
 ```
 
-Open **http://localhost:3000**. No AWS credentials needed.
+Open http://localhost:3000. No cloud credentials needed.
 
-**Demo flow (~45 seconds):**
+Demo flow (about 45 seconds):
+
 1. Drift rises through MONITORING into CRITICAL_DRIFT
-2. The Justification Gate modal appears
-3. Submit a justification → Warden returns APPROVED or REJECTED with reasoning trace
-4. Click **Run Audit** → **Download Audit** to export the Article 12 audit trail
+2. The justification gate appears
+3. Submit a justification: the evaluator returns APPROVED or REJECTED with its reasoning
+4. Click **Run Audit**, then **Download Audit** to export the audit trail
 
----
+## Connecting to your AI system
 
-## Connecting to Your AI System
-
-The Spec-Drift Chronometer wraps around AI systems you already have running — it does not replace the pipeline, it governs it. The integration below uses a LangChain RAG chatbot as an example. The same pattern applies to any LangChain-compatible chain, LangGraph graph, or agent.
+The Chronometer wraps around an AI system you already run. It does not replace the pipeline; it governs it. The example below uses a LangChain RAG chatbot; the same pattern applies to any LangChain-compatible chain, LangGraph graph or agent.
 
 ```bash
 cd integrations/langchain_rag
-cp .env.example .env        # add your OPENAI_API_KEY
+cp .env.example .env   # add your model API key
 pip install -r requirements.txt
-python check.py             # verify setup before running
+python check.py        # verify setup before running
 python rag_chatbot.py
 ```
 
@@ -85,165 +103,64 @@ from warden_callback import WardenCallbackHandler
 warden = WardenClient(base_url="https://your-warden-api.example.com")
 handler = WardenCallbackHandler(warden, dashboard_url="https://your-dashboard.example.com")
 
-# This single line wires EU AI Act Article 14 governance into your existing chain
+# One line adds the oversight gate to your existing chain
 rag_chain = (your_existing_chain).with_config(callbacks=[handler])
 ```
 
-When the gate triggers, chain execution is blocked and the operator is directed to the governance dashboard to submit a justification. The Warden Agent evaluates it and returns APPROVED or REJECTED. The gate clears only on approval.
+When the gate triggers, the chain is blocked and the operator is directed to submit a justification. The gate clears only on approval.
 
-Full integration code, a LangGraph example, and setup verification are in [`integrations/langchain_rag/`](integrations/langchain_rag/).
+Full integration code, a LangGraph example and setup checks are in [`integrations/langchain_rag/`](integrations/langchain_rag/).
 
-Having trouble connecting? See the [Troubleshooting](https://aevoxis.de/blog/eu-ai-act-langchain-rag-integration#troubleshooting) section of the integration guide.
+## How the prototype works
 
----
+- **Intent files** (`.kiro/steering/`): human-written intent that every decision is checked against (`human-intent-specs.md`, `governance.md`, `tech.md`, and machine-readable thresholds in `spec.json`).
+- **Drift engine** (FastAPI backend): measures semantic drift between the intent files and AI output and exposes it to the dashboard.
+- **Justification gate**: blocks execution above the threshold until a person justifies the action; an LLM evaluator scores the justification against the intent.
+- **Audit trail**: every governance decision is logged with a verification hash and can be downloaded.
 
-## Architecture
+### Choosing the justification evaluator
 
-```
-┌──────────────────────────────────────────────────────┐
-│                     Browser                          │
-│   Next.js Dashboard (port 3000)                      │
-│   ├── DriftDashboard  — real-time chart + logs       │
-│   ├── JustificationGate — Article 14 modal           │
-│   └── GovernanceActions — audit buttons              │
-└────────────────────┬─────────────────────────────────┘
-                     │ HTTP (NEXT_PUBLIC_API_URL)
-┌────────────────────▼─────────────────────────────────┐
-│   FastAPI Warden Engine (port 8000)                  │
-│   ├── GET  /drift          — live drift index        │
-│   ├── GET  /gate/status    — gate state              │
-│   ├── POST /gate/submit    — invoke Warden Agent     │
-│   ├── POST /audit          — generate audit file     │
-│   └── GET  /download-audit — serve audit file        │
-└────────────────────┬─────────────────────────────────┘
-                     │ boto3 (PRODUCTION only)
-┌────────────────────▼─────────────────────────────────┐
-│   AWS eu-central-1                                   │
-│   ├── Amazon Bedrock  — nova-pro-v1:0 reasoning      │
-│   └── DynamoDB        — Intent Ledger (optional)     │
-└──────────────────────────────────────────────────────┘
-```
+Set `WARDEN_LLM` to choose the model that scores justifications:
 
-**Spec Vault (`.kiro/steering/`)** — human-authored intent the Warden cross-references on every decision:
+| `WARDEN_LLM` | Model |
+|---|---|
+| `mistral` | mistral-small-2506 |
+| `gemini` | gemini-1.5-flash |
+| `huggingface` | meta-llama/Llama-3.1-8B-Instruct |
+| unset | built-in mock in demo mode; Amazon Bedrock (Nova Pro) in production mode |
 
-| File | Purpose |
-|------|---------|
-| `governance.md` | Warden persona and negotiation protocol |
-| `tech.md` | Technology constraints |
-| `human-intent-specs.md` | Architect declarations (INTENT-001 … INTENT-006) |
-| `spec.json` | Machine-readable thresholds and model config |
+Removing the dependency on hosted models, by supporting local open models, is on the [roadmap](#status). See `.env.example` for all configuration options.
 
----
+## EU AI Act mapping
 
-## Production Setup
+| Article | How the Chronometer supports it |
+|---|---|
+| Art. 14, human oversight | Execution is blocked until a person approves, and the approval must carry a justification that is checked |
+| Art. 12, record-keeping | Every governance decision is logged with a verification hash |
+| Art. 13, transparency | The drift value is visible to operators in real time |
+| Art. 50, disclosure | The system identifies itself as AI-governed at its interaction points |
 
-```bash
-cp .env.example .env
-# Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION=eu-central-1, DEMO_MODE=false
-DEMO_MODE=false ./dev.sh
-```
-
-**IAM permissions required:**
-```
-bedrock:InvokeModel    (amazon.nova-pro-v1:0 and amazon.nova-lite-v1:0)
-dynamodb:PutItem       (optional — for durable audit trail)
-dynamodb:GetItem
-```
-
-AWS Lambda deployment is supported via the included `Dockerfile` and `Procfile`. See `.env.example` for all configuration options.
-
----
-
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DEMO_MODE` | `true` | `false` enables live AWS Bedrock |
-| `DRIFT_THRESHOLD` | `0.0075` | Drift value that triggers the gate |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL for the frontend |
-| `AWS_REGION` | `eu-central-1` | Frankfurt — required for EU data sovereignty |
-| `WARDEN_LLM` | *(unset)* | Override the justification evaluator: `gemini`, `huggingface`, or `mistral` |
-| `GEMINI_API_KEY` | — | Required when `WARDEN_LLM=gemini` |
-| `HF_API_KEY` | — | Required when `WARDEN_LLM=huggingface` |
-| `MISTRAL_API_KEY` | — | Required when `WARDEN_LLM=mistral` |
-
-When `WARDEN_LLM` is unset the Warden defaults to Amazon Nova Pro via Bedrock in production and the built-in mock in demo mode.
-
----
-
-## Tech Stack
-
-- **Frontend:** Next.js 16 / React 19 / Tailwind 4 — Cloudflare Pages
-- **Backend:** FastAPI / Python 3.12 / Mangum — Render
-- **AI:** Amazon Bedrock (Nova Pro — justification analysis, Nova Lite — drift scoring)
-- **Governance:** Spec Vault with real semantic git diff analysis
-
----
-
-## Sample Audit Trail
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║      SPEC-DRIFT CHRONOMETER — SOVEREIGN AUDIT TRAIL         ║
-╚══════════════════════════════════════════════════════════════╝
-
-Timestamp:          2026-06-14 15:24:15 UTC
-Drift Index:        0.0082  |  Threshold: 0.0075  |  Gate: RESOLVED
-Spec Hash:          bf40efdc39297d64  |  Run Hash: cdfa7ff9a941820f
-
-── GOVERNANCE COMPLIANCE ──────────────────────────────────────
-EU AI Act Article 14 (Human Oversight):   VERIFIED
-EU AI Act Article 12 (Record Keeping):    VERIFIED
-Sovereign Region:                          eu-central-1 (Frankfurt)
-
-── JUSTIFICATION GATE RECORD ──────────────────────────────────
-Decision:         APPROVED
-Justification:    Migrating auth layer to OAuth2 to satisfy GDPR Article 7
-                  compliance requirements signed off by legal team on 2026-06-10.
-══════════════════════════════════════════════════════════════
-```
-
-Downloadable directly from the dashboard. A weak justification scores 29/100 and is REJECTED — the gate is not a rubber stamp.
-
----
+The Chronometer is a technical building block. Using it does not by itself make a system compliant with the AI Act.
 
 ## Research
 
-The `test_research/` folder contains the empirical test suite used to generate data for an IEEE Software paper on EU AI Act compliance failure modes. It includes two test runners:
+The [`test_research/`](test_research/) folder contains the empirical test suite behind a paper on EU AI Act compliance failure modes (under review at IEEE Software):
 
-- `run_tests.py` — three-phase test: real drift measurement across git commits, justification gate evaluation across nine quality levels (WEAK / MEDIUM / STRONG), and audit trail generation
-- `run_failure_modes.py` — twelve structured failure mode and gap tests covering Articles 9, 12, 13, 14, 17, and 50
+- `run_tests.py`: drift measurement across real git commits, justification-gate evaluation across nine quality levels, and audit-trail generation
+- `run_failure_modes.py`: twelve structured failure-mode and gap tests covering Articles 9, 12, 13, 14, 17 and 50
 
-Results across all test runs are in `test_research/results/`. The headline finding from the failure mode suite: a 10-line addition to the spec vault reduced drift detection for an entire vocabulary domain from 0.0113 to 0.0044, crossing the gate threshold in reverse and silencing detection permanently — a gap not visible from reading Article 13(3b) alone.
+**Headline finding:** a 10-line addition to the intent files reduced drift detection for an entire vocabulary domain from 0.0113 to 0.0044, crossing the gate threshold in reverse and silencing detection permanently. This is the gap the planned signed intent store and downgrade detector are designed to close.
 
-## LLM Backends for Justification Evaluation
+All results were generated with `WARDEN_LLM=mistral` (model `mistral-small-2506`, temperature 0). See [`test_research/README.md`](test_research/README.md) for the full reproduction procedure.
 
-The Warden Engine supports three real LLM backends for gate evaluation, controlled by the `WARDEN_LLM` environment variable:
+## Contributing
 
-| `WARDEN_LLM` value | Model used | API endpoint |
-|--------------------|------------|--------------|
-| `mistral` | `mistral-small-2506` | `api.mistral.ai` |
-| `gemini` | `gemini-1.5-flash` | Google AI Studio |
-| `huggingface` | `meta-llama/Llama-3.1-8B-Instruct:auto` | `router.huggingface.co` |
+Issues, ideas and pull requests are welcome, especially:
 
-When `WARDEN_LLM` is unset, the system uses Amazon Nova Pro via Bedrock in production mode (`DEMO_MODE=false`) and the built-in mock evaluator in demo mode (`DEMO_MODE=true`). No external API key is required for demo mode.
-
-**For IEEE paper reproducibility:** All empirical test data in `test_research/results/` was generated using `WARDEN_LLM=mistral` with model `mistral-small-2506` and `temperature=0`. The model is pinned by version alias (not `latest`) to ensure deterministic, reproducible results. See `test_research/README.md` for the full reproduction procedure.
-
-To run the justification gate tests against a live backend:
-
-```bash
-source venv/bin/activate
-DEMO_MODE=false WARDEN_LLM=mistral MISTRAL_API_KEY=your-key \
-  python -m uvicorn backend.main:app --port 8000 &
-
-cd test_research
-pip install -r requirements.txt
-python run_tests.py --llm mistral
-```
-
----
+- integrations with other agent frameworks
+- new failure-mode tests for the benchmark
+- real-world intent-file examples from public-sector or non-profit use cases
 
 ## License
 
-Licensed under AGPL-3.0. For commercial licensing or enterprise deployment, contact [info@aevoxis.de](mailto:info@aevoxis.de)
+Licensed under the [Apache License 2.0](LICENSE). Earlier versions of this repository were published under AGPL-3.0; from this version on, the project is Apache-2.0 only.

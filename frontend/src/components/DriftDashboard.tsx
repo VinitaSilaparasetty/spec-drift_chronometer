@@ -93,7 +93,7 @@ export default function DriftDashboard({ driftData, currentStatus, gateStatus, c
             Spec-Drift <span className="font-bold not-italic">Chronometer</span>
           </h1>
           <p className="text-zinc-500 text-xs mt-2 font-mono uppercase tracking-widest">
-            Aevoxis Governance Layer // EU AI Act Art. 12 &amp; 14 Compliant
+            Open Oversight Gate // EU AI Act Art. 12 &amp; 14
             {demoMode && <span className="ml-3 text-amber-400 border border-amber-700 px-2 py-0.5 rounded text-[10px]">DEMO MODE</span>}
           </p>
         </div>

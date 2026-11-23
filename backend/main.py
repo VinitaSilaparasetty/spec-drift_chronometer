@@ -22,7 +22,7 @@ DYNAMODB_TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", "")
 _raw_cors = os.environ.get("CORS_ORIGINS", "")
 CORS_ORIGINS = [o.strip() for o in _raw_cors.split(",") if o.strip()] or ["*"]
 
-app = FastAPI(title="Spec-Drift Chronometer — Aevoxis Warden Engine")
+app = FastAPI(title="Spec-Drift Chronometer")
 
 app.add_middleware(
     CORSMiddleware,
@@ -420,7 +420,7 @@ def _bedrock_analyze(drift_value: float, justification: str) -> dict:
         region = os.environ.get("AWS_REGION", "eu-central-1")
         client = boto3.client("bedrock-runtime", region_name=region)
         prompt = (
-            f"You are the Aevoxis Warden AI. A spec-drift of {drift_value:.4f} has been detected "
+            f"You are the Spec-Drift Chronometer Warden AI. A spec-drift of {drift_value:.4f} has been detected "
             f"(threshold: {DRIFT_THRESHOLD}). The developer submitted this justification:\n\n"
             f"\"{justification}\"\n\n"
             f"Analyze whether this justification satisfies EU AI Act Article 14 (Human Oversight) "
