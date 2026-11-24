@@ -40,7 +40,7 @@ function generateLogs(driftData: DriftPoint[], gateStatus: string, gateDecision:
   if (gateStatus === "TRIGGERED") {
     entries.push({ time: "NOW", text: "ALERT: Drift threshold breached. Justification Gate ACTIVATED.", level: "critical" });
   } else if (gateStatus === "PENDING") {
-    entries.push({ time: "NOW", text: "PENDING: Warden analyzing justification via Nova Pro...", level: "warning" });
+    entries.push({ time: "NOW", text: "PENDING: Warden evaluating the justification...", level: "warning" });
   } else if (gateStatus === "RESOLVED" && gateDecision) {
     const level = gateDecision === "APPROVED" ? "success" : "critical";
     entries.push({ time: "NOW", text: `GATE RESOLVED: ${gateDecision}. Drift event logged to audit trail.`, level });

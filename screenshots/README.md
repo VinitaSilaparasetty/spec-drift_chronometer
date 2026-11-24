@@ -42,6 +42,12 @@ Captured in `DEMO_MODE`, which the image itself labels: the model line reads
 `amazon.nova-pro-v1:0 (DEMO_MODE)` and the trace header reads
 `WARDEN ANALYSIS (amazon.nova-pro-v1:0 — DEMO_MODE simulation)`.
 
+> **Note (November 2026):** this capture predates a wording change. In
+> `DEMO_MODE` no model is called: the simulated evaluator approves any
+> justification longer than 20 characters. Current builds label it
+> `simulated (DEMO_MODE)` and no longer show an Intent Alignment Score in demo
+> mode. Real scores come from `WARDEN_LLM` (see the main README).
+
 A full-screen overlay carries the modal, titled **Justification Gate — APPROVED**
 with the subtitle "EU AI Act Article 14 · Human-in-the-Loop Required". Inside:
 

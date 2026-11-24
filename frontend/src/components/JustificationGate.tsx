@@ -80,7 +80,7 @@ export default function JustificationGate({ driftValue, gateStatus, onResolved, 
                 <p className="text-red-400 text-2xl font-bold">{driftValue.toFixed(4)}</p>
               </div>
               <div className="text-right">
-                <p className="text-zinc-400 uppercase tracking-wider text-[10px] mb-1">Sovereign Threshold</p>
+                <p className="text-zinc-400 uppercase tracking-wider text-[10px] mb-1">Gate Threshold</p>
                 <p className="text-zinc-300 text-2xl font-bold">0.0075</p>
               </div>
               <div className="text-right">
@@ -89,7 +89,7 @@ export default function JustificationGate({ driftValue, gateStatus, onResolved, 
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-zinc-800 text-zinc-500 text-[10px]">
-              Spec reference: <span className="text-zinc-300">.kiro/steering/tech.md §2</span> · Model: <span className="text-zinc-300">amazon.nova-pro-v1:0</span>
+              Spec reference: <span className="text-zinc-300">.kiro/steering/tech.md §2</span>
             </div>
           </div>
 
@@ -125,7 +125,7 @@ export default function JustificationGate({ driftValue, gateStatus, onResolved, 
               {loading && (
                 <div className="flex items-center gap-2 text-[10px] font-mono text-amber-400 animate-pulse">
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                  Invoking amazon.nova-pro-v1:0 in eu-central-1 for reasoning analysis...
+                  Evaluating the justification...
                 </div>
               )}
             </>

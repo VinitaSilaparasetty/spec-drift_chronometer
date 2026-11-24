@@ -1,5 +1,6 @@
 # Spec-Drift Chronometer
 
+[![CI](https://github.com/VinitaSilaparasetty/spec-drift_chronometer/actions/workflows/ci.yml/badge.svg)](https://github.com/VinitaSilaparasetty/spec-drift_chronometer/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
 [![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Art.%2012%20%C2%B7%2014-green)](#eu-ai-act-mapping)
@@ -34,7 +35,18 @@ Drift detection and human-approval steps already exist separately. The Chronomet
 
 ## Status
 
-**Today (working prototype).** Drift measurement, the justification gate, LLM-scored justifications (a weak justification scores 29/100 and is rejected) and a downloadable audit trail, with a demo dashboard and a LangChain/LangGraph integration.
+**Today (working prototype).** Drift measurement, the justification gate, LLM-scored justifications via `WARDEN_LLM` (with Mistral, a vague justification such as "I updated the code" scores 30/100 and is rejected; specific, traceable ones score 85/100) and a downloadable audit trail, with a demo dashboard and a LangChain/LangGraph integration.
+
+### Known limitations
+
+The research in [`test_research/`](test_research/) tested this prototype against itself. These findings are open and drive the roadmap:
+
+- **Keyword bypass.** With `mistral-small-2506`, the single word "approved" scored 85/100 and passed the gate. LLM scoring alone is not a sufficient check.
+- **Unprotected intent files.** Ten added lines in an intent file silenced detection for a whole topic area (see [Research](#research)).
+- **No identity check on approvals.** The gate evaluates the text of a justification, not who submitted it.
+- **Silent evaluator failure.** If the scoring model is unreachable, the gate records a normal-looking rejection instead of an error.
+- **Near misses are not logged.** Changes just below the threshold leave no record.
+- **Demo mode uses a simulated evaluator.** In `DEMO_MODE` no model is called; any justification longer than 20 characters is approved, so the demo runs without API keys.
 
 **Next (roadmap).** Turning the prototype into a lightweight Python library that runs without any cloud account:
 
@@ -55,6 +67,8 @@ Developers who deploy AI agents in public administration, municipalities, non-pr
 ---
 
 ## Demo
+
+**Live demo: [spec-drift-chronometer.aevoxis.de](https://spec-drift-chronometer.aevoxis.de)** (runs in `DEMO_MODE`; the first load can take up to a minute while the free-tier server wakes up).
 
 ![Dashboard showing drift below threshold](screenshots/01-dashboard.png)
 

@@ -1,7 +1,7 @@
 [project]
 name = "spec-drift-chronometer"
 version = "0.1.0"
-description = "Sovereign AI Governance and Drift Detection"
+description = "Open, vendor-neutral oversight gate for AI agents: drift detection, justification gate, audit log"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -24,3 +24,6 @@ packages = ["backend"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

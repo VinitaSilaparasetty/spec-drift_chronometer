@@ -161,8 +161,7 @@ def run_scenario_1() -> None:
     print(SECTION)
     print()
     print("  DEMO_MODE approval rule: len(justification.strip()) > 20")
-    print("  Approved → Intent Alignment Score 91/100")
-    print("  Rejected → Intent Alignment Score 29/100")
+    print("  Simulated evaluator: no model is called and no score is produced")
     print()
 
     for label, text in JUSTIFICATIONS:

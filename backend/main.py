@@ -391,28 +391,26 @@ def _bedrock_analyze(drift_value: float, justification: str) -> dict:
     ).hexdigest()[:16]
 
     if DEMO_MODE:
-        # Approve when the justification has meaningful content (> 20 chars)
+        # Simulated evaluator: no model is called. It approves any justification
+        # longer than 20 characters so the demo flow works without API keys.
+        # Real scoring needs WARDEN_LLM (see README) or production mode.
         approved = len(justification.strip()) > 20
         decision = "APPROVED" if approved else "REJECTED"
         reasoning = (
-            f"WARDEN ANALYSIS (amazon.nova-pro-v1:0 — DEMO_MODE simulation)\n"
+            f"WARDEN ANALYSIS (DEMO_MODE: simulated evaluator, no model called)\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
             f"Drift Value Detected:  {drift_value:.4f}\n"
-            f"Sovereign Threshold:   {DRIFT_THRESHOLD}\n"
+            f"Gate Threshold:        {DRIFT_THRESHOLD}\n"
             f"Excess Delta:          {drift_value - DRIFT_THRESHOLD:+.4f}\n\n"
             f"Justification Received:\n  \"{justification[:200]}\"\n\n"
-            f"Cross-Reference — .kiro/steering/tech.md §2 (Universal Constraints):\n"
-            f"  [OK] EU AI Act Article 14 — Human oversight evidence present.\n"
-            f"  [OK] EU AI Act Article 12 — Reasoning trace logged.\n"
-            f"  {'[OK]' if approved else '[FAIL]'} Justification quality meets sovereign governance threshold.\n\n"
-            f"Intent Alignment Score: {'91/100' if approved else '29/100'}\n"
-            f"Model Fingerprint:      nova-pro-v1:0 / eu-central-1\n"
+            f"Demo rule: justifications longer than 20 characters are approved.\n"
+            f"Set WARDEN_LLM to have a language model score the justification.\n\n"
             f"Verification Hash:      {run_hash}\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"WARDEN DECISION: {decision}\n"
-            f"{'Justification satisfies sovereign governance requirements. Drift acknowledged and logged to Intent Ledger.' if approved else 'Justification does not satisfy sovereign governance requirements. Drift REJECTED. System hardening initiated.'}"
+            f"{'Drift acknowledged; decision and justification logged.' if approved else 'Justification too short; drift not accepted.'}"
         )
-        return {"model": "amazon.nova-pro-v1:0 (DEMO_MODE)", "reasoning_trace": reasoning, "approved": approved, "hash": run_hash}
+        return {"model": "simulated (DEMO_MODE)", "reasoning_trace": reasoning, "approved": approved, "hash": run_hash}
 
     # Production path — real AWS Bedrock call
     try:
@@ -699,7 +697,7 @@ async def gate_submit(request: Request):
     os.makedirs(os.path.dirname(audit_path), exist_ok=True)
     event_id = str(uuid.uuid4())
     timestamp_str = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
-    with open(audit_path, "a") as f:
+    with open(audit_path, "a", encoding="utf-8") as f:
         f.write(f"\n--- JUSTIFICATION GATE LOG [{timestamp_str}] ---\n")
         f.write(f"Drift Value:      {drift_value}\n")
         f.write(f"Justification:    {justification}\n")
@@ -732,41 +730,98 @@ async def gate_submit(request: Request):
     return response
 
 
+def spec_fingerprint(specs: dict) -> str:
+    """SHA-256 over the loaded intent files (name + content, sorted by name).
+
+    Any edit to any intent file changes this value, so two audit reports with
+    the same fingerprint were produced against the same intent.
+    """
+    h = hashlib.sha256()
+    for name in sorted(specs):
+        h.update(name.encode("utf-8"))
+        h.update(b"\0")
+        h.update(specs[name].encode("utf-8"))
+        h.update(b"\0")
+    return h.hexdigest()
+
+
+def _active_spec_params(specs: dict) -> dict:
+    """Read control parameters from spec.json if present; empty dict otherwise."""
+    try:
+        return json.loads(specs.get("spec.json", "")).get("control_parameters", {})
+    except (ValueError, AttributeError):
+        return {}
+
+
+def build_audit_report() -> str:
+    """Plain-text audit report built only from values the system actually holds.
+
+    It records what happened (drift, threshold, gate state, decision, intent
+    fingerprint). It deliberately makes no compliance claim: whether a system
+    meets the EU AI Act depends on far more than this component.
+    """
+    specs = _load_spec_intent()
+    params = _active_spec_params(specs)
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    drift_val = _diff_state["last_score"]
+    fingerprint = spec_fingerprint(specs) if specs else "UNAVAILABLE (intent files not found)"
+
+    lines = [
+        "SPEC-DRIFT CHRONOMETER - AUDIT REPORT",
+        "=" * 62,
+        f"Generated:            {now}",
+        f"Mode:                 {'DEMO_MODE (sample diffs)' if DEMO_MODE else 'PRODUCTION'}",
+        f"Drift index (last):   {drift_val:.4f}",
+        f"Gate threshold:       {DRIFT_THRESHOLD}",
+        f"Gate status:          {_demo_state['gate_status']}",
+        "",
+        "-- INTENT FILES " + "-" * 46,
+        f"Files loaded:         {', '.join(sorted(specs)) if specs else 'none'}",
+        f"Intent fingerprint:   {fingerprint}",
+    ]
+    if params:
+        lines.append("Parameters in spec.json:")
+        for key, val in params.items():
+            lines.append(f"  {key}: {val}")
+    lines += [
+        "",
+        "-- WHAT THIS REPORT SUPPORTS " + "-" * 33,
+        "EU AI Act Art. 12 (record-keeping): this report and the gate log",
+        "  record drift, threshold, decision and justification with timestamps.",
+        "EU AI Act Art. 14 (human oversight): the gate blocks execution above",
+        "  the threshold until a person submits a justification.",
+        "This is a technical record. It is not a compliance certificate.",
+        "",
+    ]
+    if _demo_state["gate_decision"]:
+        lines += [
+            "-- LAST JUSTIFICATION GATE DECISION " + "-" * 26,
+            f"Decision:             {_demo_state['gate_decision']}",
+            f"Justification:        {_demo_state['gate_justification']}",
+            "",
+        ]
+    lines.append("=" * 62)
+    return "\n".join(lines) + "\n"
+
+
 @app.post("/audit")
 async def run_audit():
     audit_path = get_vault_path()
     os.makedirs(os.path.dirname(audit_path), exist_ok=True)
+    report = build_audit_report()
 
-    drift_val = _diff_state["last_score"]
-    spec_hash = hashlib.sha256(b"spec-drift-chronometer-v1.0-sovereign").hexdigest()[:16]
-    run_hash = hashlib.sha256(f"{datetime.utcnow().isoformat()}".encode()).hexdigest()[:16]
+    # Keep every gate decision already logged: regenerating the report must
+    # never erase earlier records (Art. 12 record-keeping).
+    gate_log = ""
+    if os.path.exists(audit_path):
+        with open(audit_path, encoding="utf-8") as f:
+            existing = f.read()
+        marker = existing.find("--- JUSTIFICATION GATE LOG")
+        if marker != -1:
+            gate_log = "\n" + existing[marker:]
 
-    with open(audit_path, "w") as f:
-        f.write("╔══════════════════════════════════════════════════════════════╗\n")
-        f.write("║      SPEC-DRIFT CHRONOMETER — SOVEREIGN AUDIT TRAIL         ║\n")
-        f.write("╚══════════════════════════════════════════════════════════════╝\n\n")
-        f.write(f"Timestamp:          {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n")
-        f.write(f"Mode:               {'DEMO_MODE (simulated)' if DEMO_MODE else 'PRODUCTION (live AWS)'}\n")
-        f.write(f"Drift Index:        {drift_val:.4f}\n")
-        f.write(f"Threshold:          {DRIFT_THRESHOLD}\n")
-        f.write(f"Gate Status:        {_demo_state['gate_status']}\n")
-        f.write(f"Spec Hash:          {spec_hash}\n")
-        f.write(f"Run Hash:           {run_hash}\n\n")
-        f.write("── GOVERNANCE COMPLIANCE ──────────────────────────────────────\n")
-        f.write("EU AI Act Article 14 (Human Oversight):   VERIFIED\n")
-        f.write("EU AI Act Article 12 (Transparency):      VERIFIED\n")
-        f.write(f"Sovereign Region:                          eu-central-1 (Frankfurt)\n")
-        f.write("System Integrity:                          100%\n\n")
-        f.write("── ACTIVE SPECIFICATIONS (.kiro/steering/spec.json) ───────────\n")
-        f.write("Semantic Drift Threshold:  0.15\n")
-        f.write("Max Latency (ms):          200\n")
-        f.write("Primary Model:             amazon.nova-pro-v1:0\n")
-        f.write("Audit Trail Active:        true\n\n")
-        if _demo_state["gate_decision"]:
-            f.write("── JUSTIFICATION GATE RECORD ──────────────────────────────────\n")
-            f.write(f"Decision:         {_demo_state['gate_decision']}\n")
-            f.write(f"Justification:    {_demo_state['gate_justification']}\n\n")
-        f.write("══════════════════════════════════════════════════════════════\n")
+    with open(audit_path, "w", encoding="utf-8") as f:
+        f.write(report + gate_log)
 
     return {"status": "success", "message": "Audit trail generated.", "path": audit_path}
 
