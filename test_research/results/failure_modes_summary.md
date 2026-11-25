@@ -1,6 +1,6 @@
 # Failure Mode Empirical Test Results
 ## Spec-Drift Chronometer — Aevoxis Warden Engine
-### IEEE Software Paper Data Collection
+### Research Paper Data Collection
 
 **Test Date:** 2026-06-24  
 **System:** Spec-Drift Chronometer v1.0 (commit 8397c35)  

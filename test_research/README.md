@@ -1,6 +1,6 @@
 # Spec-Drift Chronometer — Research Test Suite
 
-Empirical test suite for the IEEE Software paper:
+Empirical test suite for the research paper:
 *"Failure Modes in EU AI Act Article 14 Compliance Engineering: Empirical Evidence
 from a Production Warden Agent"*
 

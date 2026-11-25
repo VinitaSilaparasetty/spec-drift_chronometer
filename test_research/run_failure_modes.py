@@ -1,5 +1,5 @@
 """
-Failure Mode Test Suite for IEEE Software Paper
+Failure Mode Test Suite for the research paper
 Aevoxis Warden Engine — Spec-Drift Chronometer
 
 Tests FM1, FM3, FM4, FM5, FM6, FM10, FM11, FM12
@@ -1062,7 +1062,7 @@ def main():
         finding_short = r["finding"][:53]
         log(f"{r['fm']:<16} {finding_short}")
 
-    log("\n(Full details above. See failure_modes_summary.md for IEEE paper table.)")
+    log("\n(Full details above. See failure_modes_summary.md for the paper table.)")
     log(f"\nRaw results saved to: {RAW_OUT}")
 
     return results

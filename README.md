@@ -158,7 +158,7 @@ The Chronometer is a technical building block. Using it does not by itself make 
 
 ## Research
 
-The [`test_research/`](test_research/) folder contains the empirical test suite behind a paper on EU AI Act compliance failure modes (under review at IEEE Software):
+The [`test_research/`](test_research/) folder contains the empirical test suite behind a paper on EU AI Act compliance failure modes:
 
 - `run_tests.py`: drift measurement across real git commits, justification-gate evaluation across nine quality levels, and audit-trail generation
 - `run_failure_modes.py`: twelve structured failure-mode and gap tests covering Articles 9, 12, 13, 14, 17 and 50
